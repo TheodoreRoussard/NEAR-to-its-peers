@@ -1,0 +1,16 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  judge-demo:
+    # Runs exactly what the screeners run: a fresh clone, no install, no network needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"  # the minimum the README promises (tomllib)
+      - run: make judge-demo

@@ -1,0 +1,60 @@
+# Peer panel, perimeters and falsification. Frozen (with Théo's approval) on Thu 12 Nov.
+# Slugs and ids are verified against the live APIs on fetch day; mark each one verified = true then.
+
+[panel_rule]
+description = "Smart-contract L1s with a DefiLlama chain-fee series and CoinGecko market-cap rank <= 30; excluding BTC, stablecoins, L2s, exchange tokens; fees counted as base-layer fees only."
+max_coingecko_rank = 30
+fee_definition = "base-layer fees (gas, burn and validator revenue)"
+
+[[chains]]
+name = "NEAR"
+defillama_slug = "near"
+coingecko_id = "near"
+reason = "Subject of the thesis."
+
+[[chains]]
+name = "Solana"
+defillama_slug = "solana"
+coingecko_id = "solana"
+reason = "Leader, reference point."
+
+[[chains]]
+name = "Ethereum"
+defillama_slug = "ethereum"
+coingecko_id = "ethereum"
+reason = "Leader, reference point. Excludes its layer-2s."
+
+[[chains]]
+name = "Avalanche"
+defillama_slug = "avalanche"
+coingecko_id = "avalanche-2"
+reason = "Comparable size."
+
+[[chains]]
+name = "Sui"
+defillama_slug = "sui"
+coingecko_id = "sui"
+reason = "Comparable size."
+
+[[chains]]
+name = "Aptos"
+defillama_slug = "aptos"
+coingecko_id = "aptos"
+reason = "Comparable size."
+
+[intents]
+defillama_slug = "near-intents"
+# The revenue booking switched from lump sums to daily on this date; run-rates use data after it.
+regime_break = "2026-02-23"
+buyback_account = "buybacks.multisignature.near"
+
+[windows]
+trailing_days = 365
+run_rate_days = 90
+
+# Thresholds k, x, y, z are set by Théo before the final fetch (Thu 12 Nov), in the same commit as the panel rule.
+[falsification]
+c1 = "NEAR BASE+NET multiple / median(peer multiples) > k (trailing 365 days)"
+c2 = "Intents net revenue, last 90 days < (1 - x) * prior 90 days (data after regime_break)"
+c3 = "net / gross, last 90 days < (1 - y) * prior 90 days (data after regime_break)"
+c4 = "outflows from the buyback account > z% of holdings, or no burn/lock policy"

@@ -1,0 +1,15 @@
+# Private planning material (plan, review panel). Remove this line to publish it.
+planning/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data staging (make all writes here, then swaps into data/raw/)
+data/staging/
+
+# Secrets
+.env
+*.key
+*.pem
