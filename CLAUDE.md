@@ -12,9 +12,14 @@ Project: "NEAR Against Its Peers", for the NEAR Hackathon (Investment Thesis tra
 - `HACKATHON.md` and the hackathon site are authoritative over this file.
 
 ## Git workflow
-- **Commit on `dev`, never directly on `main`.** Push `dev`, and CI runs `make judge-demo` (Python 3.11 and 3.13) and checks that the committed outputs match a rebuild.
-- Merge into `main` only through a pull request `dev → main` with green CI. A push to `main` deploys `docs/` to GitHub Pages (CD).
-- Keep commits small and separate (code, data snapshot, docs), each with a clear message.
+- **One branch and one pull request per topic. Never commit directly on `main`.**
+  - Name the branch after its topic: `feat/…`, `fix/…`, `ci/…`, `docs/…`, `chore/…`, `data/…`.
+  - Branch from `main`.
+  - If a topic depends on another that is not merged yet, branch from that topic's branch and open the PR **against it** (a stacked PR).
+- **CI runs on every pull request**, whatever its base: `make judge-demo` on Python 3.11 and 3.13, plus a check that the committed outputs match a rebuild. Merge only when CI is green.
+- **Merge with "Create a merge commit", never squash.** That gives one merge commit per topic on `main`. Squashing breaks stacked PRs: the next PR would show the commits again. Merge stacks in order; once a base branch is merged and deleted, GitHub retargets the next PR to `main`.
+- A push to `main` deploys `docs/` to GitHub Pages (CD).
+- Inside a topic, keep commits small and separate (code, data snapshot, rebuilt `metrics.json`, docs), each with a clear message.
 
 ## Commands
 - `make judge-demo`: offline build plus tests. This is the screening command and must always pass.
