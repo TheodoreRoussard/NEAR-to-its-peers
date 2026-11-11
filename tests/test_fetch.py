@@ -65,6 +65,16 @@ class FetchTest(unittest.TestCase):
                 self.assertTrue((self.raw / filename).exists())
                 self.assertTrue(url.startswith("https://"))
 
+    def test_candidates_are_fetched_like_chains(self):
+        self.run_fetch(fake_get_json())
+        manifest = json.loads((self.raw / "MANIFEST.json").read_text())
+        for candidate in self.config["candidates"]:
+            with self.subTest(candidate=candidate["name"]):
+                self.assertIn(f"defillama_{candidate['defillama_slug']}_dailyFees.json",
+                              manifest["sources"])
+                self.assertIn(f"coingecko_{candidate['coingecko_id']}_market_chart.json",
+                              manifest["sources"])
+
     def test_intents_has_fees_revenue_and_holders_revenue(self):
         self.run_fetch(fake_get_json())
         manifest = json.loads((self.raw / "MANIFEST.json").read_text())

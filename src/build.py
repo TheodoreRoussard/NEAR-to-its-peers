@@ -65,24 +65,46 @@ def _falsification(config, near_perimeters, last, prior):
     }
 
 
+def _chain_entry(raw_dir, chain, as_of, days, gaps):
+    """Market cap, trailing fees and multiple of one chain (a panel chain or a candidate)."""
+    rows = _series(raw_dir, f"defillama_{chain['defillama_slug']}_dailyFees.json")
+    fees = m.trailing_sum(rows, as_of, days, max_missing=gaps)
+    chart = json.loads((raw_dir / f"coingecko_{chain['coingecko_id']}_market_chart.json").read_text())
+    caps = chart["market_caps"]
+    cap = m.market_cap_on(caps, as_of)
+    return {"market_cap": cap, "fees_trailing": fees, "multiple": m.multiple(cap, fees),
+            "missing_days": m.missing_days(rows, as_of, days),
+            "float_growth": m.float_growth(chart["prices"], caps, as_of)}
+
+
+def _add_one(raw_dir, config, as_of, peers, near_base_net_multiple):
+    """One row per candidate: its own multiple and NEAR BASE+NET against the median of the
+    peers plus that candidate. Candidates are never part of the panel."""
+    days = config["windows"]["trailing_days"]
+    gaps = config["windows"]["max_missing_days"]
+    rows = []
+    for candidate in config.get("candidates", []):
+        entry = _chain_entry(raw_dir, candidate, as_of, days, gaps)
+        with_candidate = peers + ([entry["multiple"]] if entry["multiple"] is not None else [])
+        ratio = None
+        if near_base_net_multiple is not None:
+            ratio = near_base_net_multiple / median(with_candidate)
+        rows.append({"name": candidate["name"], "market_cap": entry["market_cap"],
+                     "fees_trailing": entry["fees_trailing"], "multiple": entry["multiple"],
+                     "missing_days": entry["missing_days"],
+                     "near_base_net_ratio_to_median_with_candidate": ratio})
+    return rows
+
+
 def compute(raw_dir, config, as_of):
     days = config["windows"]["trailing_days"]
     gaps = config["windows"]["max_missing_days"]
-    chains = {}
-    for chain in config["chains"]:
-        rows = _series(raw_dir, f"defillama_{chain['defillama_slug']}_dailyFees.json")
-        fees = m.trailing_sum(rows, as_of, days, max_missing=gaps)
-        chart = json.loads((raw_dir / f"coingecko_{chain['coingecko_id']}_market_chart.json")
-                           .read_text())
-        caps = chart["market_caps"]
-        cap = m.market_cap_on(caps, as_of)
-        chains[chain["name"]] = {"market_cap": cap, "fees_trailing": fees,
-                                 "multiple": m.multiple(cap, fees),
-                                 "missing_days": m.missing_days(rows, as_of, days),
-                                 "float_growth": m.float_growth(chart["prices"], caps, as_of)}
+    chains = {chain["name"]: _chain_entry(raw_dir, chain, as_of, days, gaps)
+              for chain in config["chains"]}
 
-    peers = [c["multiple"] for name, c in chains.items() if name != "NEAR"]
-    peer_median = median(p for p in peers if p is not None)
+    peers = [c["multiple"] for name, c in chains.items()
+             if name != "NEAR" and c["multiple"] is not None]
+    peer_median = median(peers)
 
     intents = config["intents"]
     slug = intents["defillama_slug"]
@@ -123,9 +145,11 @@ def compute(raw_dir, config, as_of):
                 for key in ("net", "gross", "holders")}
 
     falsification = _falsification(config, near_perimeters, last, prior)
+    add_one = _add_one(raw_dir, config, as_of, peers, near_perimeters["BASE+NET"]["multiple"])
 
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
-            "peer_median_multiple": peer_median, "near_perimeters": near_perimeters,
+            "peer_median_multiple": peer_median, "add_one": add_one,
+            "near_perimeters": near_perimeters,
             "intents": {"regime_break": break_day,
                         "windows": {"last_90d": last, "prior_90d": prior},
                         "run_rate_90d": run_rate},
