@@ -40,6 +40,11 @@ def missing_days(rows, as_of, days, allow_late_start=False):
     return _window(rows, as_of, days, allow_late_start)[1]
 
 
+def window_days(rows, as_of, days, allow_late_start=False):
+    """Length in days of the window `trailing_sum` / `annualized` actually use."""
+    return _window(rows, as_of, days, allow_late_start)[2]
+
+
 def trailing_sum(rows, as_of, days, allow_late_start=False, max_missing=0):
     """Sum of the `days` daily values ending on as_of. Zeros count as data.
 

@@ -108,37 +108,35 @@ def compute(raw_dir, config, as_of):
 
     intents = config["intents"]
     slug = intents["defillama_slug"]
-    holders_rows = _since(_series(raw_dir, f"defillama_{slug}_dailyHoldersRevenue.json"),
-                          intents["regime_break"])
-    holders_window = m.trailing_sum(holders_rows, as_of, days, allow_late_start=True,
-                                    max_missing=gaps)
-    holders_days = (date.fromisoformat(as_of) - date.fromisoformat(intents["regime_break"])).days + 1
-    holders_days = min(holders_days, days)
+    break_day = intents["regime_break"]
+    series = {"net": _series(raw_dir, f"defillama_{slug}_dailyRevenue.json"),
+              "gross": _series(raw_dir, f"defillama_{slug}_dailyFees.json"),
+              "holders": _series(raw_dir, f"defillama_{slug}_dailyHoldersRevenue.json")}
 
+    # Every perimeter is a trailing-`days` sum ending at as_of (the holders series is the full one:
+    # zeros before the regime break count). The run-rate since the break is informational only.
     near = chains["NEAR"]
     denominators = m.perimeters(
         base=near["fees_trailing"],
-        intents_net=m.trailing_sum(_series(raw_dir, f"defillama_{slug}_dailyRevenue.json"), as_of, days,
-                                   max_missing=gaps),
-        intents_holders=m.annualized(holders_rows, as_of, days, max_missing=gaps),
-        intents_gross=m.trailing_sum(_series(raw_dir, f"defillama_{slug}_dailyFees.json"), as_of, days,
-                                     max_missing=gaps),
+        intents_net=m.trailing_sum(series["net"], as_of, days, max_missing=gaps),
+        intents_holders=m.trailing_sum(series["holders"], as_of, days, max_missing=gaps),
+        intents_gross=m.trailing_sum(series["gross"], as_of, days, max_missing=gaps),
     )
     near_perimeters = {}
     for name, denominator in denominators.items():
         multiple = m.multiple(near["market_cap"], denominator)
         near_perimeters[name] = {
+            "basis": f"trailing_{days}",
             "denominator": denominator,
             "multiple": multiple,
             "ratio_to_peer_median": None if multiple is None else multiple / peer_median,
         }
-    near_perimeters["BASE+HOLDERS"]["holders_days"] = holders_days
-    near_perimeters["BASE+HOLDERS"]["holders_sum"] = holders_window
+    holders_since_break = _since(series["holders"], break_day)
+    near_perimeters["BASE+HOLDERS"]["holders_annualized_since_regime_break"] = m.annualized(
+        holders_since_break, as_of, days, max_missing=gaps)
+    near_perimeters["BASE+HOLDERS"]["holders_days"] = m.window_days(
+        holders_since_break, as_of, days, allow_late_start=True)
 
-    break_day = intents["regime_break"]
-    series = {"net": _series(raw_dir, f"defillama_{slug}_dailyRevenue.json"),
-              "gross": _series(raw_dir, f"defillama_{slug}_dailyFees.json"),
-              "holders": _series(raw_dir, f"defillama_{slug}_dailyHoldersRevenue.json")}
     last = _intents_window(series, as_of, break_day, gaps)
     prior = _intents_window(series, m.shift_date(as_of, -RUN_RATE_DAYS), break_day, gaps)
     run_rate = {key: None if last[key] is None else last[key] * 365 / RUN_RATE_DAYS

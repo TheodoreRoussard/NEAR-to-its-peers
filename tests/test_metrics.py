@@ -63,6 +63,17 @@ class AnnualizeTest(unittest.TestCase):
         self.assertAlmostEqual(metrics.annualized(rows, "2026-11-10", days=90), 365)
 
 
+class WindowDaysTest(unittest.TestCase):
+    def test_a_full_window_has_the_requested_length(self):
+        rows = daily("2026-08-13", [1] * 90)
+        self.assertEqual(metrics.window_days(rows, "2026-11-10", days=90), 90)
+
+    def test_a_late_start_shortens_the_window_to_the_first_row(self):
+        rows = daily("2026-11-09", [2, 3])  # first row 9 Nov, as_of 10 Nov
+        self.assertEqual(metrics.window_days(rows, "2026-11-10", days=90, allow_late_start=True), 2)
+        self.assertEqual(metrics.window_days(rows, "2026-11-10", days=90), 90)
+
+
 class MultipleTest(unittest.TestCase):
     def test_market_cap_over_denominator(self):
         self.assertEqual(metrics.multiple(1000, 4), 250)
