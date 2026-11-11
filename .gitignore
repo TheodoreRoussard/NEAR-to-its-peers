@@ -13,3 +13,6 @@ data/staging/
 .env
 *.key
 *.pem
+
+# macOS
+.DS_Store
