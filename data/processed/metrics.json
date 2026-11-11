@@ -85,6 +85,24 @@
     }
   },
   "peer_median_multiple": 1347.8179722802088,
+  "add_one": [
+    {
+      "name": "Tron",
+      "market_cap": 30169779106.395023,
+      "fees_trailing": 333292629.0,
+      "multiple": 90.52039103569561,
+      "missing_days": [],
+      "near_base_net_ratio_to_median_with_candidate": 0.5095225681432027
+    },
+    {
+      "name": "Cardano",
+      "market_cap": 6661088180.288562,
+      "fees_trailing": 940765.0,
+      "multiple": 7080.501698392863,
+      "missing_days": [],
+      "near_base_net_ratio_to_median_with_candidate": 0.3236575946331436
+    }
+  ],
   "near_perimeters": {
     "BASE": {
       "denominator": 1164678.0,
