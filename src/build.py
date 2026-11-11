@@ -11,6 +11,8 @@ from statistics import median
 
 from src import metrics as m
 
+RUN_RATE_DAYS = 90
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -25,6 +27,20 @@ def _series(raw_dir, filename):
 def _since(rows, iso_day):
     start = date.fromisoformat(iso_day)
     return [r for r in rows if datetime.fromtimestamp(r[0], tz=timezone.utc).date() >= start]
+
+
+def _intents_window(series, end, regime_break, gaps):
+    """Sums over the RUN_RATE_DAYS days ending on `end`; all null if the window
+    starts before the regime break (the data is not comparable there)."""
+    start = m.shift_date(end, -(RUN_RATE_DAYS - 1))
+    window = {"start": start, "end": end}
+    if start < regime_break:
+        window.update(net=None, gross=None, holders=None, net_over_gross=None)
+        return window
+    for key, rows in series.items():
+        window[key] = m.trailing_sum(rows, end, RUN_RATE_DAYS, max_missing=gaps)
+    window["net_over_gross"] = None if window["gross"] == 0 else window["net"] / window["gross"]
+    return window
 
 
 def compute(raw_dir, config, as_of):
@@ -73,8 +89,20 @@ def compute(raw_dir, config, as_of):
     near_perimeters["BASE+HOLDERS"]["holders_days"] = holders_days
     near_perimeters["BASE+HOLDERS"]["holders_sum"] = holders_window
 
+    break_day = intents["regime_break"]
+    series = {"net": _series(raw_dir, f"defillama_{slug}_dailyRevenue.json"),
+              "gross": _series(raw_dir, f"defillama_{slug}_dailyFees.json"),
+              "holders": _series(raw_dir, f"defillama_{slug}_dailyHoldersRevenue.json")}
+    last = _intents_window(series, as_of, break_day, gaps)
+    prior = _intents_window(series, m.shift_date(as_of, -RUN_RATE_DAYS), break_day, gaps)
+    run_rate = {key: None if last[key] is None else last[key] * 365 / RUN_RATE_DAYS
+                for key in ("net", "gross", "holders")}
+
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
-            "peer_median_multiple": peer_median, "near_perimeters": near_perimeters}
+            "peer_median_multiple": peer_median, "near_perimeters": near_perimeters,
+            "intents": {"regime_break": break_day,
+                        "windows": {"last_90d": last, "prior_90d": prior},
+                        "run_rate_90d": run_rate}}
 
 
 def build(raw_dir: Path, out_dir: Path, config: dict) -> dict:

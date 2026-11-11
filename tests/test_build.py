@@ -101,6 +101,37 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(a["missing_days"], ["2026-11-05"])
         self.assertAlmostEqual(a["fees_trailing"], 365)  # 364 days of 1, scaled to 365
 
+    def test_intents_windows_are_null_when_they_start_before_the_regime_break(self):
+        intents = self.build()["intents"]
+        w = intents["windows"]
+        self.assertEqual(intents["regime_break"], "2026-11-01")
+        self.assertEqual(w["last_90d"]["start"], "2026-08-13")
+        self.assertEqual(w["last_90d"]["end"], AS_OF)
+        self.assertEqual(w["prior_90d"]["start"], "2026-05-15")
+        self.assertEqual(w["prior_90d"]["end"], "2026-08-12")
+        for window in w.values():
+            for key in ("net", "gross", "holders", "net_over_gross"):
+                self.assertIsNone(window[key])
+        self.assertEqual(intents["run_rate_90d"],
+                         {"net": None, "gross": None, "holders": None})
+
+    def test_intents_windows_and_run_rates_after_the_regime_break(self):
+        write_snapshot(self.raw, {"near": 3650, "a": 36500, "b": 109500})
+        path = self.raw / "defillama_near-intents_dailyHoldersRevenue.json"
+        rows = daily(lambda d: 2)
+        rows[-1][1] = 10_000
+        path.write_text(json.dumps({"totalDataChart": rows}))
+        config = {**CONFIG, "intents": {**CONFIG["intents"], "regime_break": "2025-01-01"}}
+        build.build(self.raw, self.out, config)
+        intents = json.loads((self.out / "metrics.json").read_text())["intents"]
+        last, prior = intents["windows"]["last_90d"], intents["windows"]["prior_90d"]
+        self.assertEqual((last["net"], last["gross"], last["holders"]), (90, 360, 180))
+        self.assertEqual(last["net_over_gross"], 0.25)
+        self.assertEqual((prior["net"], prior["gross"], prior["holders"]), (90, 360, 180))
+        self.assertEqual(intents["run_rate_90d"],
+                         {"net": 90 * 365 / 90, "gross": 360 * 365 / 90, "holders": 180 * 365 / 90})
+        self.assertEqual(intents["run_rate_90d"]["net"], 365)
+
     def test_missing_snapshot_fails_with_a_clear_message(self):
         with self.assertRaises(build.MissingSnapshot) as ctx:
             build.build(self.raw, self.out, CONFIG)
