@@ -1,0 +1,22 @@
+{
+  "as_of": "2026-11-10",
+  "fetched_at": "2026-11-11T15:07:43Z",
+  "sources": {
+    "defillama_near_dailyFees.json": "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
+    "defillama_solana_dailyFees.json": "https://api.llama.fi/summary/fees/solana?dataType=dailyFees",
+    "defillama_ethereum_dailyFees.json": "https://api.llama.fi/summary/fees/ethereum?dataType=dailyFees",
+    "defillama_avalanche_dailyFees.json": "https://api.llama.fi/summary/fees/avalanche?dataType=dailyFees",
+    "defillama_sui_dailyFees.json": "https://api.llama.fi/summary/fees/sui?dataType=dailyFees",
+    "defillama_aptos_dailyFees.json": "https://api.llama.fi/summary/fees/aptos?dataType=dailyFees",
+    "defillama_near-intents_dailyFees.json": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyFees",
+    "defillama_near-intents_dailyRevenue.json": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyRevenue",
+    "defillama_near-intents_dailyHoldersRevenue.json": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyHoldersRevenue",
+    "coingecko_markets.json": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=near,solana,ethereum,avalanche-2,sui,aptos",
+    "coingecko_near_market_chart.json": "https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily",
+    "coingecko_solana_market_chart.json": "https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=365&interval=daily",
+    "coingecko_ethereum_market_chart.json": "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=365&interval=daily",
+    "coingecko_avalanche-2_market_chart.json": "https://api.coingecko.com/api/v3/coins/avalanche-2/market_chart?vs_currency=usd&days=365&interval=daily",
+    "coingecko_sui_market_chart.json": "https://api.coingecko.com/api/v3/coins/sui/market_chart?vs_currency=usd&days=365&interval=daily",
+    "coingecko_aptos_market_chart.json": "https://api.coingecko.com/api/v3/coins/aptos/market_chart?vs_currency=usd&days=365&interval=daily"
+  }
+}
