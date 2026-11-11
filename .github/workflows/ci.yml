@@ -1,16 +1,52 @@
-name: ci
+name: ci-cd
 
+# Workflow: work on `dev`, open a pull request dev -> main, merge only when CI is green.
 on:
   push:
+    branches: [dev, main]
   pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   judge-demo:
     # Runs exactly what the screeners run: a fresh clone, no install, no network needed.
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]  # the minimum the README promises, and a current one
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"  # the minimum the README promises (tomllib)
+          python-version: ${{ matrix.python-version }}
       - run: make judge-demo
+      - name: Committed outputs match a rebuild of the committed snapshot
+        run: git status --porcelain && git diff --exit-code
+
+  deploy-pages:
+    # CD: publish the dashboard (docs/) to GitHub Pages after a green build on main.
+    needs: judge-demo
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: dashboard
+        name: Skip until the dashboard exists
+        run: |
+          if [ -f docs/index.html ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "No docs/index.html yet, nothing to deploy."; fi
+      - if: steps.dashboard.outputs.exists == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - if: steps.dashboard.outputs.exists == 'true'
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -11,6 +11,11 @@ Project: "NEAR Against Its Peers", for the NEAR Hackathon (Investment Thesis tra
 - **Perimeter names:** BASE, BASE+NET (captured revenue, the defended one), BASE+HOLDERS (sensitivity), BASE+GROSS (upper bound only). Never write "cheapest", and never write "returned to the token".
 - `HACKATHON.md` and the hackathon site are authoritative over this file.
 
+## Git workflow
+- **Commit on `dev`, never directly on `main`.** Push `dev`, and CI runs `make judge-demo` (Python 3.11 and 3.13) and checks that the committed outputs match a rebuild.
+- Merge into `main` only through a pull request `dev → main` with green CI. A push to `main` deploys `docs/` to GitHub Pages (CD).
+- Keep commits small and separate (code, data snapshot, docs), each with a clear message.
+
 ## Commands
 - `make judge-demo`: offline build plus tests. This is the screening command and must always pass.
 - `make build`: offline build from `data/raw/`.
