@@ -21,6 +21,7 @@ CONFIG = {
     "intents": {"defillama_slug": "near-intents", "regime_break": "2026-11-01",
                 "buyback_holdings_near": 2000, "buyback_outflows_near": 500,
                 "buyback_policy": "none published",
+                "buyback_outflows_period": "cumulative, from the first buyback to buyback_checked_on",
                 "buyback_checked_on": "2026-11-10", "buyback_source": "https://example.test/acct"},
     "falsification": {"c1": "F1", "c2": "F2", "c3": "F3", "c4": "F4", "thresholds": {}},
     "windows": {"trailing_days": 365, "max_missing_days": 3},
@@ -201,6 +202,9 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(f["c2"]["formula"], "F2")
         self.assertEqual(f["c4"], {"formula": "F4", "statistic": 0.25, "threshold": None,
                                    "verdict": "fires", "policy": "none published",
+                                   "holdings_near": 2000, "outflows_near": 500,
+                                   "checked_on": "2026-11-10",
+                                   "outflows_period": "cumulative, from the first buyback to buyback_checked_on",
                                    "source": "https://example.test/acct"})
 
     def _falsification(self, thresholds, last_net=1, policy="burn"):

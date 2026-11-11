@@ -46,6 +46,8 @@ class PanelConfigTest(unittest.TestCase):
         self.assertEqual(intents["buyback_holdings_near"], 2250000)
         self.assertEqual(intents["buyback_outflows_near"], 12000)
         self.assertEqual(intents["buyback_policy"], "none published")
+        self.assertEqual(intents["buyback_outflows_period"],
+                         "cumulative, from the first buyback to buyback_checked_on")
         self.assertEqual(intents["buyback_checked_on"], "2026-11-11")
         self.assertTrue(intents["buyback_source"].startswith("https://nearblocks.io/address/"))
 

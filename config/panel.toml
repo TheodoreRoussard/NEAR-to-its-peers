@@ -66,6 +66,7 @@ buyback_account = "buybacks.multisignature.near"
 buyback_holdings_near = 2250000
 buyback_outflows_near = 12000
 buyback_policy = "none published"
+buyback_outflows_period = "cumulative, from the first buyback to buyback_checked_on"
 buyback_checked_on = "2026-11-11"
 buyback_source = "https://nearblocks.io/address/buybacks.multisignature.near"
 

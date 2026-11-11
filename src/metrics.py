@@ -153,6 +153,10 @@ def change(last, prior):
     return last / prior - 1
 
 
+# The buyback_policy value meaning no burn or lock policy is published (C4 fires on it).
+NO_POLICY = "none published"
+
+
 def outflow_share(outflows, holdings):
     """outflows / holdings; None when holdings are zero."""
     return None if holdings == 0 else outflows / holdings
@@ -161,7 +165,7 @@ def outflow_share(outflows, holdings):
 def buyback_criterion(statistic, threshold, policy):
     """C4: fires on an outflow share above threshold/100, or whenever no policy is published."""
     result = criterion(statistic, threshold, ABOVE_PERCENT)
-    if policy == "none published":
+    if policy == NO_POLICY:
         result["verdict"] = "fires"
     return result
 

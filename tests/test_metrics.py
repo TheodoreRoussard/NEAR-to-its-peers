@@ -74,6 +74,12 @@ class WindowDaysTest(unittest.TestCase):
         self.assertEqual(metrics.window_days(rows, "2026-11-10", days=90), 90)
 
 
+class NoPolicyTest(unittest.TestCase):
+    def test_the_no_policy_marker_is_one_named_constant(self):
+        self.assertEqual(metrics.NO_POLICY, "none published")
+        self.assertEqual(metrics.buyback_criterion(0.01, 5, metrics.NO_POLICY)["verdict"], "fires")
+
+
 class MultipleTest(unittest.TestCase):
     def test_market_cap_over_denominator(self):
         self.assertEqual(metrics.multiple(1000, 4), 250)

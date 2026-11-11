@@ -61,7 +61,12 @@ def _falsification(config, near_perimeters, last, prior):
         "c2": entry("c2", m.change(last["net"], prior["net"]), "x", m.DROP),
         "c3": entry("c3", m.change(last["net_over_gross"], prior["net_over_gross"]), "y", m.DROP),
         "c4": {"formula": formulas["c4"], **c4,
-               "policy": intents["buyback_policy"], "source": intents["buyback_source"]},
+               "policy": intents["buyback_policy"],
+               "holdings_near": intents["buyback_holdings_near"],
+               "outflows_near": intents["buyback_outflows_near"],
+               "checked_on": intents["buyback_checked_on"],
+               "outflows_period": intents["buyback_outflows_period"],
+               "source": intents["buyback_source"]},
     }
 
 
