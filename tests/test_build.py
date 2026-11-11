@@ -174,6 +174,17 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(intents["run_rate_90d"],
                          {"net": None, "gross": None, "holders": None})
 
+    def test_intents_report_their_missing_days_over_the_trailing_window(self):
+        write_snapshot(self.raw, CAPS)
+        for name, gap in (("dailyRevenue", date(2026, 11, 5)), ("dailyHoldersRevenue", date(2026, 11, 7))):
+            path = self.raw / f"defillama_near-intents_{name}.json"
+            rows = json.loads(path.read_text())["totalDataChart"]
+            path.write_text(json.dumps({"totalDataChart": [r for r in rows if r[0] != ts(gap)]}))
+        build.build(self.raw, self.out, CONFIG)
+        intents = json.loads((self.out / "metrics.json").read_text())["intents"]
+        self.assertEqual(intents["missing_days"],
+                         {"net": ["2026-11-05"], "gross": [], "holders": ["2026-11-07"]})
+
     def test_intents_windows_and_run_rates_after_the_regime_break(self):
         write_snapshot(self.raw, CAPS)
         path = self.raw / "defillama_near-intents_dailyHoldersRevenue.json"

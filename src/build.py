@@ -11,7 +11,7 @@ from statistics import median
 
 from src import metrics as m
 
-RUN_RATE_DAYS = 90
+RUN_RATE_DAYS = 90  # fixed: the output keys (last_90d, prior_90d, run_rate_90d) are named 90d
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -147,6 +147,8 @@ def compute(raw_dir, config, as_of):
     run_rate = {key: None if last[key] is None else last[key] * 365 / RUN_RATE_DAYS
                 for key in ("net", "gross", "holders")}
 
+    intents_missing_days = {key: m.missing_days(rows, as_of, days) for key, rows in series.items()}
+
     falsification = _falsification(config, near_perimeters, last, prior)
     add_one = _add_one(raw_dir, config, as_of, peers, near_perimeters["BASE+NET"]["multiple"])
 
@@ -155,7 +157,8 @@ def compute(raw_dir, config, as_of):
             "near_perimeters": near_perimeters,
             "intents": {"regime_break": break_day,
                         "windows": {"last_90d": last, "prior_90d": prior},
-                        "run_rate_90d": run_rate},
+                        "run_rate_90d": run_rate,
+                        "missing_days": intents_missing_days},
             "falsification": falsification}
 
 

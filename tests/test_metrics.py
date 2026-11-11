@@ -63,6 +63,13 @@ class AnnualizeTest(unittest.TestCase):
         self.assertAlmostEqual(metrics.annualized(rows, "2026-11-10", days=90), 365)
 
 
+class ExactSumTest(unittest.TestCase):
+    def test_trailing_sum_is_exact_in_floating_point(self):
+        # 1e16 + 1 + (-1e16): a naive left-to-right sum loses the 1 and gives 0.0; the exact sum is 1.
+        rows = daily("2026-11-08", [1e16, 1.0, -1e16])
+        self.assertEqual(metrics.trailing_sum(rows, "2026-11-10", days=3), 1.0)
+
+
 class WindowDaysTest(unittest.TestCase):
     def test_a_full_window_has_the_requested_length(self):
         rows = daily("2026-08-13", [1] * 90)

@@ -3,6 +3,7 @@
 Series are lists of [unix_seconds, value] daily rows (DefiLlama format).
 Dates are ISO strings. Nothing here reads files, the network or the clock.
 """
+import math
 from datetime import date, datetime, timedelta, timezone
 from statistics import median
 
@@ -54,12 +55,12 @@ def trailing_sum(rows, as_of, days, allow_late_start=False, max_missing=0):
     present, missing, length = _window(rows, as_of, days, allow_late_start)
     if len(missing) > max_missing:
         raise IncompleteSeries(f"{len(missing)} missing days, first {missing[0]}")
-    return sum(present.values()) * length / len(present)
+    return math.fsum(present.values()) * length / len(present)
 
 
 def annualized(rows, as_of, days, max_missing=0):
     """Run-rate: the sum over the available part of the window, scaled to 365 days."""
-    present, missing, length = _window(rows, as_of, days, allow_late_start=True)
+    length = window_days(rows, as_of, days, allow_late_start=True)
     return trailing_sum(rows, as_of, days, True, max_missing) * 365 / length
 
 
