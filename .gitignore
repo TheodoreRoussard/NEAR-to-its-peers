@@ -16,3 +16,6 @@ data/staging/
 
 # macOS
 .DS_Store
+
+# JetBrains IDE settings
+.idea/
