@@ -93,3 +93,27 @@ def market_cap_on(market_caps, as_of):
         if _day(t_ms / 1000) == target:
             return value
     raise IncompleteSeries(f"no market cap on {as_of}")
+
+
+def float_growth(prices, market_caps, as_of, max_days=365):
+    """Growth of the circulating-supply proxy (market cap / price) up to as_of.
+
+    Starts at the earliest date present in both series that is not older than
+    `as_of - max_days`. Context only: it never enters a multiple.
+    """
+    end = date.fromisoformat(as_of)
+    oldest = end - timedelta(days=max_days)
+    price_by_day = {_day(t / 1000): v for t, v in prices}
+    cap_by_day = {_day(t / 1000): v for t, v in market_caps}
+    both = sorted(d for d in price_by_day.keys() & cap_by_day.keys() if oldest <= d <= end)
+    if not both or both[-1] != end:
+        raise IncompleteSeries(f"no price and market cap on {as_of}")
+    start = both[0]
+    days = (end - start).days
+    if days == 0:
+        raise IncompleteSeries(f"no history before {as_of}")
+    s_start = cap_by_day[start] / price_by_day[start]
+    s_end = cap_by_day[end] / price_by_day[end]
+    return {"start": start.isoformat(), "end": as_of, "days": days,
+            "growth": s_end / s_start - 1,
+            "annualized": (s_end / s_start) ** (365 / days) - 1}

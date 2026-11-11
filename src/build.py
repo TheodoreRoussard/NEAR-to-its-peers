@@ -50,12 +50,14 @@ def compute(raw_dir, config, as_of):
     for chain in config["chains"]:
         rows = _series(raw_dir, f"defillama_{chain['defillama_slug']}_dailyFees.json")
         fees = m.trailing_sum(rows, as_of, days, max_missing=gaps)
-        caps = json.loads((raw_dir / f"coingecko_{chain['coingecko_id']}_market_chart.json")
-                          .read_text())["market_caps"]
+        chart = json.loads((raw_dir / f"coingecko_{chain['coingecko_id']}_market_chart.json")
+                           .read_text())
+        caps = chart["market_caps"]
         cap = m.market_cap_on(caps, as_of)
         chains[chain["name"]] = {"market_cap": cap, "fees_trailing": fees,
                                  "multiple": m.multiple(cap, fees),
-                                 "missing_days": m.missing_days(rows, as_of, days)}
+                                 "missing_days": m.missing_days(rows, as_of, days),
+                                 "float_growth": m.float_growth(chart["prices"], caps, as_of)}
 
     peers = [c["multiple"] for name, c in chains.items() if name != "NEAR"]
     peer_median = median(p for p in peers if p is not None)
