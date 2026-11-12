@@ -50,6 +50,15 @@ class PanelConfigTest(unittest.TestCase):
                 self.assertIsInstance(value, (int, float))
                 self.assertNotIsInstance(value, bool)
 
+    def test_thresholds_are_frozen_within_their_ranges(self):
+        # Frozen on Thu 12 Nov (plan): every criterion gets a verdict instead of "pending".
+        t = self.config["falsification"]["thresholds"]
+        self.assertEqual(set(t), {"k", "x", "y", "z"})
+        self.assertGreater(t["k"], 0)          # a ratio to the peer median
+        self.assertTrue(0 < t["x"] < 1)        # a share: x >= 1 could never fire
+        self.assertTrue(0 < t["y"] < 1)
+        self.assertGreaterEqual(t["z"], 1)     # z is in percent (1 = 1 %), not a share
+
     def test_buyback_policy_is_a_known_value(self):
         self.assertIn(self.config["intents"]["buyback_policy"],
                       {metrics.NO_POLICY, "burn", "lock"})

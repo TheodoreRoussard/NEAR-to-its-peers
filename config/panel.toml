@@ -82,5 +82,10 @@ c2 = "Intents net revenue, last 90 days < (1 - x) * prior 90 days (data after re
 c3 = "net / gross, last 90 days < (1 - y) * prior 90 days (data after regime_break)"
 c4 = "outflows from the buyback account > z% of holdings, or no burn/lock policy"
 
-# Left empty on purpose: k, x, y, z are set by Théo. A missing threshold gives verdict "pending".
+# Frozen by Théo on 2026-11-12, after the snapshot values were visible (disclosed in THESIS.md).
+# Round values, chosen on principle rather than on where the current data falls.
 [falsification.thresholds]
+k = 1.0   # C1 ratio: NEAR is no more expensive than the typical (median) peer; stable across add-one and leave-one-out panels
+x = 0.5   # C2 share: Intents net revenue halves quarter over quarter (a reversal, not a normal cool-down)
+y = 0.25  # C3 share: the net/gross capture rate loses a quarter (fee compression beyond noise)
+z = 1     # C4 percent (1 = 1 %): a small operational outflow is tolerated; still fires while no burn/lock policy exists
