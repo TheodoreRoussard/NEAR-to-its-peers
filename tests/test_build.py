@@ -14,6 +14,10 @@ CONFIG = {
         {"name": "A", "defillama_slug": "a", "coingecko_id": "a"},
         {"name": "B", "defillama_slug": "b", "coingecko_id": "b"},
     ],
+    "candidates": [
+        {"name": "C", "defillama_slug": "c", "coingecko_id": "c"},
+        {"name": "D", "defillama_slug": "d", "coingecko_id": "d"},
+    ],
     "intents": {"defillama_slug": "near-intents", "regime_break": "2026-11-01",
                 "buyback_holdings_near": 2000, "buyback_outflows_near": 500,
                 "buyback_policy": "none published",
@@ -21,6 +25,10 @@ CONFIG = {
     "falsification": {"c1": "F1", "c2": "F2", "c3": "F3", "c4": "F4", "thresholds": {}},
     "windows": {"trailing_days": 365, "run_rate_days": 90, "max_missing_days": 3},
 }
+
+# Fees are 1/day (365 a year) everywhere, so multiple = market cap / 365.
+# Candidates: C = 500 (above the peers), D = 50 (below them).
+CAPS = {"near": 3650, "a": 36500, "b": 109500, "c": 182500, "d": 18250}
 
 
 def ts(day):
@@ -40,6 +48,8 @@ def write_snapshot(raw, market_caps):
         "defillama_near_dailyFees.json": daily(lambda d: 1),
         "defillama_a_dailyFees.json": daily(lambda d: 1),
         "defillama_b_dailyFees.json": daily(lambda d: 1),
+        "defillama_c_dailyFees.json": daily(lambda d: 1),
+        "defillama_d_dailyFees.json": daily(lambda d: 1),
         "defillama_near-intents_dailyRevenue.json": daily(lambda d: 1),
         "defillama_near-intents_dailyFees.json": daily(lambda d: 4),
         "defillama_near-intents_dailyHoldersRevenue.json":
@@ -66,7 +76,7 @@ class BuildTest(unittest.TestCase):
         self.out = self.tmp / "processed"
 
     def build(self):
-        write_snapshot(self.raw, {"near": 3650, "a": 36500, "b": 109500})
+        write_snapshot(self.raw, CAPS)
         build.build(self.raw, self.out, CONFIG)
         return json.loads((self.out / "metrics.json").read_text())
 
@@ -79,6 +89,23 @@ class BuildTest(unittest.TestCase):
             self.assertEqual((fg["start"], fg["end"], fg["days"]), ("2026-08-02", AS_OF, 100))
             self.assertEqual(fg["growth"], 1.0)
             self.assertAlmostEqual(fg["annualized"], 2 ** 3.65 - 1)
+
+    def test_add_one_ratio_uses_the_median_of_the_peers_plus_that_candidate(self):
+        add_one = {row["name"]: row for row in self.build()["add_one"]}
+        self.assertEqual(list(add_one), ["C", "D"])
+        c = add_one["C"]
+        self.assertEqual((c["market_cap"], c["fees_trailing"], c["multiple"], c["missing_days"]),
+                         (182500, 365, 500, []))
+        # BASE+NET multiple is 5. Median(100, 300, 500) = 300, median(50, 100, 300) = 100.
+        self.assertAlmostEqual(c["near_base_net_ratio_to_median_with_candidate"], 5 / 300)
+        self.assertAlmostEqual(add_one["D"]["multiple"], 50)
+        self.assertAlmostEqual(add_one["D"]["near_base_net_ratio_to_median_with_candidate"], 5 / 100)
+
+    def test_candidates_never_enter_the_peer_median_or_the_chains(self):
+        m = self.build()
+        self.assertEqual(m["peer_median_multiple"], 200)          # median(100, 300) only
+        self.assertEqual(set(m["chains"]), {"NEAR", "A", "B"})
+        self.assertAlmostEqual(m["near_perimeters"]["BASE+NET"]["ratio_to_peer_median"], 5 / 200)
 
     def test_chain_multiples_use_the_as_of_market_cap_and_trailing_fees(self):
         chains = self.build()["chains"]
@@ -104,7 +131,7 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(p["holders_days"], 10)
 
     def test_a_missing_day_is_scaled_and_reported(self):
-        write_snapshot(self.raw, {"near": 3650, "a": 36500, "b": 109500})
+        write_snapshot(self.raw, CAPS)
         path = self.raw / "defillama_a_dailyFees.json"
         rows = json.loads(path.read_text())["totalDataChart"]
         gap_ts = ts(date(2026, 11, 5))
@@ -131,7 +158,7 @@ class BuildTest(unittest.TestCase):
                          {"net": None, "gross": None, "holders": None})
 
     def test_intents_windows_and_run_rates_after_the_regime_break(self):
-        write_snapshot(self.raw, {"near": 3650, "a": 36500, "b": 109500})
+        write_snapshot(self.raw, CAPS)
         path = self.raw / "defillama_near-intents_dailyHoldersRevenue.json"
         rows = daily(lambda d: 2)
         rows[-1][1] = 10_000
@@ -161,7 +188,7 @@ class BuildTest(unittest.TestCase):
                                    "source": "https://example.test/acct"})
 
     def _falsification(self, thresholds, last_net=1, policy="burn"):
-        write_snapshot(self.raw, {"near": 3650, "a": 36500, "b": 109500})
+        write_snapshot(self.raw, CAPS)
         rows = daily(lambda d: last_net if d > date(2026, 8, 12) else 2)
         rows[-1][1] = 10_000
         (self.raw / "defillama_near-intents_dailyRevenue.json").write_text(

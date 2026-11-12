@@ -24,6 +24,14 @@ class PanelConfigTest(unittest.TestCase):
                 self.assertTrue(chain["coingecko_id"])
                 self.assertTrue(chain["reason"])
 
+    def test_candidates_are_tron_and_cardano_with_a_reason(self):
+        candidates = {c["name"]: c for c in self.config["candidates"]}
+        self.assertEqual(set(candidates), {"Tron", "Cardano"})
+        for candidate in candidates.values():
+            self.assertTrue(candidate["reason"])
+        self.assertEqual(candidates["Tron"]["defillama_slug"], "tron")
+        self.assertEqual(candidates["Cardano"]["coingecko_id"], "cardano")
+
     def test_all_four_falsification_criteria_are_defined(self):
         self.assertEqual(
             set(self.config["falsification"]) - {"thresholds"}, {"c1", "c2", "c3", "c4"}

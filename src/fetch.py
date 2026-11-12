@@ -23,7 +23,9 @@ DEFILLAMA_KEEP = ("name", "methodology", "methodologyURL", "parentProtocol", "to
 def planned_requests(config):
     """Return (filename, url, source) for every request the snapshot needs."""
     requests = []
-    for chain in config["chains"]:
+    # Candidates (add-one test) are fetched like panel chains but kept out of the markets call.
+    tracked = config["chains"] + config.get("candidates", [])
+    for chain in tracked:
         slug = chain["defillama_slug"]
         requests.append((f"defillama_{slug}_dailyFees.json",
                          DEFILLAMA.format(slug=slug, data_type="dailyFees"), "defillama"))
@@ -35,7 +37,7 @@ def planned_requests(config):
     requests.append(("coingecko_markets.json",
                      f"{COINGECKO}/coins/markets?vs_currency=usd&ids={ids}", "coingecko"))
     # Keyless CoinGecko serves at most 365 days of history (401 beyond that).
-    for chain in config["chains"]:
+    for chain in tracked:
         cg = chain["coingecko_id"]
         requests.append((f"coingecko_{cg}_market_chart.json",
                          f"{COINGECKO}/coins/{cg}/market_chart?vs_currency=usd&days=365&interval=daily",

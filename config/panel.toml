@@ -42,6 +42,21 @@ defillama_slug = "aptos"
 coingecko_id = "aptos"
 reason = "Comparable size."
 
+# Add-one test: chains the panel rule could also admit. They are fetched and shown in metrics.json
+# ("add_one") but never enter the peer median. Slugs and ids verified against the live APIs on 11 Nov 2026
+# (DefiLlama names: Tron, Cardano; CoinGecko ranks 8 and 18).
+[[candidates]]
+name = "Tron"
+defillama_slug = "tron"
+coingecko_id = "tron"
+reason = "Large smart-contract L1 with a DefiLlama chain-fee series and CoinGecko rank <= 30; the panel rule admits it."
+
+[[candidates]]
+name = "Cardano"
+defillama_slug = "cardano"
+coingecko_id = "cardano"
+reason = "Smart-contract L1 with a DefiLlama chain-fee series and CoinGecko rank <= 30; the panel rule admits it."
+
 [intents]
 defillama_slug = "near-intents"
 # The revenue booking switched from lump sums to daily on this date; run-rates use data after it.
