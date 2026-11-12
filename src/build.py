@@ -195,6 +195,11 @@ def compute(raw_dir, config, as_of):
 
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
             "peer_median_multiple": peer_median, "add_one": add_one,
+            "panel": {"rule": config.get("panel_rule", {}).get("description"),
+                      "fee_definition": config.get("panel_rule", {}).get("fee_definition"),
+                      "reasons": {c["name"]: c.get("reason") for c in config["chains"]},
+                      "candidate_reasons": {c["name"]: c.get("reason")
+                                            for c in config.get("candidates", [])}},
             "panel_variants": variants,
             "c1_verdict_same_in_all_variants": len({v["c1_verdict"] for v in variants}) == 1,
             "near_perimeters": near_perimeters,

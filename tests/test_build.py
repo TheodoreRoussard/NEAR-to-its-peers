@@ -299,6 +299,20 @@ class BuildTest(unittest.TestCase):
                          {"fees": None, "fees_methodology": None, "market_cap": None})
         self.assertEqual(m["intents"]["sources"]["net"], "https://fees.test/intents-net")
 
+    def test_panel_rule_and_reasons_are_carried_into_the_metrics(self):
+        write_snapshot(self.raw, CAPS)
+        config = {**CONFIG,
+                  "panel_rule": {"description": "Rule R.", "fee_definition": "base fees"},
+                  "chains": [{**c, "reason": f"Why {c['name']}."} for c in CONFIG["chains"]],
+                  "candidates": [{**c, "reason": f"Why {c['name']}."}
+                                 for c in CONFIG["candidates"]]}
+        build.build(self.raw, self.out, config)
+        panel = json.loads((self.out / "metrics.json").read_text())["panel"]
+        self.assertEqual(panel["rule"], "Rule R.")
+        self.assertEqual(panel["fee_definition"], "base fees")
+        self.assertEqual(panel["reasons"], {"NEAR": "Why NEAR.", "A": "Why A.", "B": "Why B."})
+        self.assertEqual(panel["candidate_reasons"], {"C": "Why C.", "D": "Why D."})
+
     def test_missing_snapshot_fails_with_a_clear_message(self):
         with self.assertRaises(build.MissingSnapshot) as ctx:
             build.build(self.raw, self.out, CONFIG)
