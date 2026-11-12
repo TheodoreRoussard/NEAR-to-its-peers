@@ -11,6 +11,7 @@ from statistics import median
 
 from src import metrics as m
 
+BUCKET_DAYS = 30  # Intents revenue chart: whole 30-day buckets back from as_of
 RUN_RATE_DAYS = 90  # fixed: the output keys (last_90d, prior_90d, run_rate_90d) are named 90d
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,16 +71,28 @@ def _falsification(config, near_perimeters, last, prior):
     }
 
 
+def _sources(raw_dir):
+    """URL of every raw file, as recorded by fetch.py in the manifest (empty if absent)."""
+    return json.loads((raw_dir / "MANIFEST.json").read_text()).get("sources", {})
+
+
 def _chain_entry(raw_dir, chain, as_of, days, gaps):
     """Market cap, trailing fees and multiple of one chain (a panel chain or a candidate)."""
-    rows = _series(raw_dir, f"defillama_{chain['defillama_slug']}_dailyFees.json")
+    fees_file = f"defillama_{chain['defillama_slug']}_dailyFees.json"
+    chart_file = f"coingecko_{chain['coingecko_id']}_market_chart.json"
+    rows = _series(raw_dir, fees_file)
     fees = m.trailing_sum(rows, as_of, days, max_missing=gaps)
-    chart = json.loads((raw_dir / f"coingecko_{chain['coingecko_id']}_market_chart.json").read_text())
+    chart = json.loads((raw_dir / chart_file).read_text())
+    sources = _sources(raw_dir)
     caps = chart["market_caps"]
     cap = m.market_cap_on(caps, as_of)
     return {"market_cap": cap, "fees_trailing": fees, "multiple": m.multiple(cap, fees),
             "missing_days": m.missing_days(rows, as_of, days),
-            "float_growth": m.float_growth(chart["prices"], caps, as_of)}
+            "float_growth": m.float_growth(chart["prices"], caps, as_of),
+            "sources": {"fees": sources.get(fees_file),
+                        "fees_methodology": json.loads((raw_dir / fees_file).read_text())
+                        .get("methodologyURL"),
+                        "market_cap": sources.get(chart_file)}}
 
 
 def _add_one(raw_dir, config, as_of, peers, near_base_net_multiple):
@@ -101,14 +114,33 @@ def _add_one(raw_dir, config, as_of, peers, near_base_net_multiple):
     return rows
 
 
+def _panel_variants(config, peers_by_name, add_one, near_base_net_multiple):
+    """NEAR BASE+NET against the peer median of the panel, of the panel plus each candidate,
+    and of the panel minus each peer, with the C1 verdict in each."""
+    k = config["falsification"].get("thresholds", {}).get("k")
+    variants = [("Panel", list(peers_by_name.values()))]
+    variants += [(f"+ {row['name']}", list(peers_by_name.values()) + [row["multiple"]])
+                 for row in add_one if row["multiple"] is not None]
+    variants += [(f"- {name}", [v for n, v in peers_by_name.items() if n != name])
+                 for name in peers_by_name]
+    rows = []
+    for label, multiples in variants:
+        peer_median = median(multiples)
+        ratio = None if near_base_net_multiple is None else near_base_net_multiple / peer_median
+        rows.append({"label": label, "peer_median": peer_median, "near_base_net_ratio": ratio,
+                     "c1_verdict": m.criterion(ratio, k, m.ABOVE)["verdict"]})
+    return rows
+
+
 def compute(raw_dir, config, as_of):
     days = config["windows"]["trailing_days"]
     gaps = config["windows"]["max_missing_days"]
     chains = {chain["name"]: _chain_entry(raw_dir, chain, as_of, days, gaps)
               for chain in config["chains"]}
 
-    peers = [c["multiple"] for name, c in chains.items()
-             if name != "NEAR" and c["multiple"] is not None]
+    peers_by_name = {name: c["multiple"] for name, c in chains.items()
+                     if name != "NEAR" and c["multiple"] is not None}
+    peers = list(peers_by_name.values())
     peer_median = median(peers)
 
     intents = config["intents"]
@@ -151,14 +183,31 @@ def compute(raw_dir, config, as_of):
 
     falsification = _falsification(config, near_perimeters, last, prior)
     add_one = _add_one(raw_dir, config, as_of, peers, near_perimeters["BASE+NET"]["multiple"])
+    variants = _panel_variants(config, peers_by_name, add_one,
+                               near_perimeters["BASE+NET"]["multiple"])
+
+    files = {key: f"defillama_{slug}_{name}.json" for key, name in
+             (("net", "dailyRevenue"), ("gross", "dailyFees"), ("holders", "dailyHoldersRevenue"))}
+    sources = _sources(raw_dir)
+    net_buckets = m.buckets(series["net"], as_of, BUCKET_DAYS, break_day, max_missing=gaps)
+    gross_buckets = m.buckets(series["gross"], as_of, BUCKET_DAYS, break_day, max_missing=gaps)
 
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
             "peer_median_multiple": peer_median, "add_one": add_one,
+            "panel_variants": variants,
+            "c1_verdict_same_in_all_variants": len({v["c1_verdict"] for v in variants}) == 1,
             "near_perimeters": near_perimeters,
             "intents": {"regime_break": break_day,
                         "windows": {"last_90d": last, "prior_90d": prior},
                         "run_rate_90d": run_rate,
-                        "missing_days": intents_missing_days},
+                        "missing_days": intents_missing_days,
+                        "buckets_30d": [{"start": n["start"], "end": n["end"],
+                                         "net": n["sum"], "gross": g["sum"]}
+                                        for n, g in zip(net_buckets, gross_buckets)],
+                        "sources": {
+                            **{key: sources.get(name) for key, name in files.items()},
+                            "methodology": json.loads((raw_dir / files["net"]).read_text())
+                            .get("methodologyURL")}},
             "falsification": falsification}
 
 
