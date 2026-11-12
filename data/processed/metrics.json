@@ -13,6 +13,11 @@
         "days": 363,
         "growth": 0.025318352899319052,
         "annualized": 0.0254596088612149
+      },
+      "sources": {
+        "fees": "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
+        "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near",
+        "market_cap": "https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily"
       }
     },
     "Solana": {
@@ -26,6 +31,11 @@
         "days": 363,
         "growth": 0.06884695232240046,
         "annualized": 0.0692391141317279
+      },
+      "sources": {
+        "fees": "https://api.llama.fi/summary/fees/solana?dataType=dailyFees",
+        "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/solana.ts",
+        "market_cap": "https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=365&interval=daily"
       }
     },
     "Ethereum": {
@@ -39,6 +49,11 @@
         "days": 363,
         "growth": 0.008167525105046147,
         "annualized": 0.008212709527479545
+      },
+      "sources": {
+        "fees": "https://api.llama.fi/summary/fees/ethereum?dataType=dailyFees",
+        "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/ethereum",
+        "market_cap": "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=365&interval=daily"
       }
     },
     "Avalanche": {
@@ -52,6 +67,11 @@
         "days": 363,
         "growth": 0.04348603690663633,
         "annualized": 0.04373079364786392
+      },
+      "sources": {
+        "fees": "https://api.llama.fi/summary/fees/avalanche?dataType=dailyFees",
+        "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/avalanche.ts",
+        "market_cap": "https://api.coingecko.com/api/v3/coins/avalanche-2/market_chart?vs_currency=usd&days=365&interval=daily"
       }
     },
     "Sui": {
@@ -68,6 +88,11 @@
         "days": 363,
         "growth": 0.12494497426189222,
         "annualized": 0.12567493225340076
+      },
+      "sources": {
+        "fees": "https://api.llama.fi/summary/fees/sui?dataType=dailyFees",
+        "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/sui.ts",
+        "market_cap": "https://api.coingecko.com/api/v3/coins/sui/market_chart?vs_currency=usd&days=365&interval=daily"
       }
     },
     "Aptos": {
@@ -81,6 +106,11 @@
         "days": 363,
         "growth": 0.2207889885474612,
         "annualized": 0.22213156749115903
+      },
+      "sources": {
+        "fees": "https://api.llama.fi/summary/fees/aptos?dataType=dailyFees",
+        "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/aptos.ts",
+        "market_cap": "https://api.coingecko.com/api/v3/coins/aptos/market_chart?vs_currency=usd&days=365&interval=daily"
       }
     }
   },
@@ -103,6 +133,57 @@
       "near_base_net_ratio_to_median_with_candidate": 0.3236575946331436
     }
   ],
+  "panel_variants": [
+    {
+      "label": "Panel",
+      "peer_median": 1347.8179722802088,
+      "near_base_net_ratio": 0.3350514699275002,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "+ Tron",
+      "peer_median": 886.2971358714506,
+      "near_base_net_ratio": 0.5095225681432027,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "+ Cardano",
+      "peer_median": 1395.2658621190362,
+      "near_base_net_ratio": 0.3236575946331436,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "- Solana",
+      "peer_median": 1395.2658621190362,
+      "near_base_net_ratio": 0.3236575946331436,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "- Ethereum",
+      "peer_median": 886.2971358714506,
+      "near_base_net_ratio": 0.5095225681432027,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "- Avalanche",
+      "peer_median": 886.2971358714506,
+      "near_base_net_ratio": 0.5095225681432027,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "- Sui",
+      "peer_median": 933.7450257102779,
+      "near_base_net_ratio": 0.48363137727419103,
+      "c1_verdict": "holds"
+    },
+    {
+      "label": "- Aptos",
+      "peer_median": 1395.2658621190362,
+      "near_base_net_ratio": 0.3236575946331436,
+      "c1_verdict": "holds"
+    }
+  ],
+  "c1_verdict_same_in_all_variants": true,
   "near_perimeters": {
     "BASE": {
       "basis": "trailing_365",
@@ -160,6 +241,62 @@
       "net": [],
       "gross": [],
       "holders": []
+    },
+    "buckets_30d": [
+      {
+        "start": "2026-03-16",
+        "end": "2026-04-14",
+        "net": 515710.0,
+        "gross": 3541155.0
+      },
+      {
+        "start": "2026-04-15",
+        "end": "2026-05-14",
+        "net": 305129.05,
+        "gross": 2956457.0
+      },
+      {
+        "start": "2026-05-15",
+        "end": "2026-06-13",
+        "net": 855247.0,
+        "gross": 3065916.0
+      },
+      {
+        "start": "2026-06-14",
+        "end": "2026-07-13",
+        "net": 400576.0,
+        "gross": 3097668.0
+      },
+      {
+        "start": "2026-07-14",
+        "end": "2026-08-12",
+        "net": 488382.0,
+        "gross": 2740630.0
+      },
+      {
+        "start": "2026-08-13",
+        "end": "2026-09-11",
+        "net": 1036846.0,
+        "gross": 4811657.0
+      },
+      {
+        "start": "2026-09-12",
+        "end": "2026-10-11",
+        "net": 2223195.0,
+        "gross": 7985015.0
+      },
+      {
+        "start": "2026-10-12",
+        "end": "2026-11-10",
+        "net": 1817568.0,
+        "gross": 5960786.0
+      }
+    ],
+    "sources": {
+      "net": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyRevenue",
+      "gross": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyFees",
+      "holders": "https://api.llama.fi/summary/fees/near-intents?dataType=dailyHoldersRevenue",
+      "methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near-intents"
     }
   },
   "falsification": {
