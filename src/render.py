@@ -11,6 +11,7 @@ from pathlib import Path
 
 REPO = "https://github.com/TheodoreRoussard/NEAR-to-its-peers"
 CONFIG_URL = f"{REPO}/blob/main/config/panel.toml"
+THESIS_URL = f"{REPO}/blob/main/THESIS.md"
 
 PERIMETER_NOTES = {
     "BASE": "Base-layer gas fees only. The strict holder reading.",
@@ -465,7 +466,9 @@ def render(metrics):
                 fee_sources(metrics),
                 f"Multiple = market cap on {fmt_day(as_of)} / fees summed over the trailing "
                 f"{days} days. Log scale. NEAR appears under its four perimeters; the peer "
-                f"median uses the peers only, never NEAR or the candidate chains.",
+                f"median uses the peers only, never NEAR or the candidate chains. Peers are "
+                f"measured on base-layer fees only: only NEAR BASE is like for like, while "
+                f"BASE+NET also counts NEAR's application revenue from Intents.",
                 multiples_takeaway(metrics)),
         section("perimeters", "Which NEAR fees count", perimeters_table(metrics),
                 intents_sources(metrics),
@@ -520,7 +523,7 @@ def render(metrics):
 <header>
 <h1>NEAR Against Its Peers</h1>
 <p class="lede">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
-<p class="meta">Data as of <time datetime="{e(as_of)}">{fmt_day(as_of)}</time> · trailing {days} days · {link(REPO, 'code and data')} · Not financial advice.</p>
+<p class="meta">Data as of <time datetime="{e(as_of)}">{fmt_day(as_of)}</time> · trailing {days} days · {link(THESIS_URL, 'the thesis')} · {link(REPO, 'code and data')} · Not financial advice.</p>
 <p class="notice">The falsification thresholds (k, x, y, z) were frozen after these numbers were visible. The rationale for each one sits next to it in {link(CONFIG_URL, 'config/panel.toml')}.</p>
 </header>
 {chr(10).join(sections)}
