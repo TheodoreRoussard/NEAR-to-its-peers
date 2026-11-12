@@ -14,6 +14,10 @@ make judge-demo
 
 This rebuilds everything offline from the committed data snapshot in `data/raw/`, then runs the tests.
 
+Then open `docs/index.html` in a browser to see the dashboard: each chart with its source, its method and one plain sentence on what it shows. The page has no scripts and loads nothing from the network. The same page is published at https://theodoreroussard.github.io/NEAR-to-its-peers/.
+
+The numbers behind it are in `data/processed/metrics.json`.
+
 Optional: `make all` fetches fresh data (needs network), then rebuilds.
 
 `.claude/settings.json` holds a Claude Code hook that only runs `make test` after edits to `src/` or `tests/`; it does nothing outside Claude Code.
