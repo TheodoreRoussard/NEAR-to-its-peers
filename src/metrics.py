@@ -58,6 +58,11 @@ def annualized(rows, as_of, days, max_missing=0):
     return trailing_sum(rows, as_of, days, True, max_missing) * 365 / length
 
 
+def shift_date(iso, days):
+    """The ISO date `days` after `iso` (negative `days` goes back)."""
+    return (date.fromisoformat(iso) + timedelta(days=days)).isoformat()
+
+
 def multiple(market_cap, denominator):
     """Market cap / denominator; None when the denominator is zero or negative."""
     if denominator is None or denominator <= 0:

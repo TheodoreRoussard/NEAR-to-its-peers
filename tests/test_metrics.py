@@ -100,3 +100,9 @@ class MarketCapOnTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ShiftDateTest(unittest.TestCase):
+    def test_shifts_back_and_forward(self):
+        self.assertEqual(metrics.shift_date("2026-11-10", -90), "2026-08-12")
+        self.assertEqual(metrics.shift_date("2026-08-12", 90), "2026-11-10")
