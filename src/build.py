@@ -1,4 +1,4 @@
-"""Offline build: data/raw/ -> data/processed/metrics.json.
+"""Offline build: data/raw/ -> data/processed/metrics.json and docs/index.html.
 
 Never reads the wall clock: the date comes from data/raw/MANIFEST.json ("as_of").
 """
@@ -10,6 +10,7 @@ from pathlib import Path
 from statistics import median
 
 from src import metrics as m
+from src import render
 
 BUCKET_DAYS = 30  # Intents revenue chart: whole 30-day buckets back from as_of
 RUN_RATE_DAYS = 90  # fixed: the output keys (last_90d, prior_90d, run_rate_90d) are named 90d
@@ -228,10 +229,11 @@ def main() -> int:
     with (ROOT / "config" / "panel.toml").open("rb") as f:
         config = tomllib.load(f)
     try:
-        build(ROOT / "data" / "raw", ROOT / "data" / "processed", config)
+        result = build(ROOT / "data" / "raw", ROOT / "data" / "processed", config)
     except MissingSnapshot as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
+    render.write(result, ROOT / "docs" / "index.html")
     return 0
 
 
