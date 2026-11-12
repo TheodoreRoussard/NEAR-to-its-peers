@@ -1,3 +1,70 @@
 {
-  "as_of": "2026-11-10"
+  "as_of": "2026-11-10",
+  "trailing_days": 365,
+  "chains": {
+    "NEAR": {
+      "market_cap": 4752056551.498374,
+      "fees_trailing": 1164678.0,
+      "multiple": 4080.146230544729,
+      "missing_days": []
+    },
+    "Solana": {
+      "market_cap": 51195827113.39133,
+      "fees_trailing": 231392824.0,
+      "multiple": 221.25071222343234,
+      "missing_days": []
+    },
+    "Ethereum": {
+      "market_cap": 260555474131.4111,
+      "fees_trailing": 175978356.0,
+      "multiple": 1480.6109117840099,
+      "missing_days": []
+    },
+    "Avalanche": {
+      "market_cap": 3853818812.9286513,
+      "fees_trailing": 2671229.0,
+      "multiple": 1442.7137519578635,
+      "missing_days": []
+    },
+    "Sui": {
+      "market_cap": 3495381542.234304,
+      "fees_trailing": 2593363.2093663914,
+      "multiple": 1347.8179722802088,
+      "missing_days": [
+        "2026-07-30",
+        "2026-11-05"
+      ]
+    },
+    "Aptos": {
+      "market_cap": 519052425.69434065,
+      "fees_trailing": 1221943.0,
+      "multiple": 424.77629946269235,
+      "missing_days": []
+    }
+  },
+  "peer_median_multiple": 1347.8179722802088,
+  "near_perimeters": {
+    "BASE": {
+      "denominator": 1164678.0,
+      "multiple": 4080.146230544729,
+      "ratio_to_peer_median": 3.0272234934232456
+    },
+    "BASE+NET": {
+      "denominator": 10522982.05,
+      "multiple": 451.5883928071866,
+      "ratio_to_peer_median": 0.3350514699275002
+    },
+    "BASE+HOLDERS": {
+      "denominator": 12368197.840038314,
+      "multiple": 384.21576150043643,
+      "ratio_to_peer_median": 0.2850650231725495,
+      "holders_days": 261,
+      "holders_sum": 8011284.05
+    },
+    "BASE+GROSS": {
+      "denominator": 55190943.0,
+      "multiple": 86.1021083024143,
+      "ratio_to_peer_median": 0.06388259399505457
+    }
+  }
 }
