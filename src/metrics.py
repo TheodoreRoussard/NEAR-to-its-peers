@@ -64,6 +64,22 @@ def annualized(rows, as_of, days, max_missing=0):
     return trailing_sum(rows, as_of, days, True, max_missing) * 365 / length
 
 
+def buckets(rows, as_of, size, earliest, max_missing=0):
+    """Consecutive `size`-day sums ending on as_of, oldest first, going back as long as a
+    whole bucket starts on or after both `earliest` and the first day of data (a partial
+    bucket would read as a drop)."""
+    if rows:
+        earliest = max(earliest, min(_day(t) for t, _ in rows).isoformat())
+    out = []
+    end = as_of
+    while shift_date(end, -(size - 1)) >= earliest:
+        start = shift_date(end, -(size - 1))
+        out.append({"start": start, "end": end,
+                    "sum": trailing_sum(rows, end, size, max_missing=max_missing)})
+        end = shift_date(start, -1)
+    return out[::-1]
+
+
 def shift_date(iso, days):
     """The ISO date `days` after `iso` (negative `days` goes back)."""
     return (date.fromisoformat(iso) + timedelta(days=days)).isoformat()

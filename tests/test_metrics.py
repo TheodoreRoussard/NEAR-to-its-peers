@@ -122,6 +122,31 @@ class MarketCapOnTest(unittest.TestCase):
             metrics.market_cap_on(caps, "2026-11-10")
 
 
+class BucketsTest(unittest.TestCase):
+    def test_full_buckets_end_on_as_of_and_go_back_to_the_earliest_day(self):
+        rows = daily("2026-01-01", list(range(1, 11)))  # 1..10 on 1..10 Jan
+        got = metrics.buckets(rows, "2026-01-10", size=3, earliest="2026-01-02")
+        self.assertEqual(got, [
+            {"start": "2026-01-02", "end": "2026-01-04", "sum": 2 + 3 + 4},
+            {"start": "2026-01-05", "end": "2026-01-07", "sum": 5 + 6 + 7},
+            {"start": "2026-01-08", "end": "2026-01-10", "sum": 8 + 9 + 10},
+        ])
+
+    def test_a_bucket_starting_before_the_earliest_day_is_dropped(self):
+        rows = daily("2026-01-01", [1] * 10)
+        got = metrics.buckets(rows, "2026-01-10", size=3, earliest="2026-01-03")
+        self.assertEqual([b["start"] for b in got], ["2026-01-05", "2026-01-08"])
+
+    def test_buckets_never_start_before_the_first_day_of_data(self):
+        rows = daily("2026-01-04", [1] * 7)  # 4..10 Jan
+        got = metrics.buckets(rows, "2026-01-10", size=3, earliest="2025-01-01")
+        self.assertEqual([b["start"] for b in got], ["2026-01-05", "2026-01-08"])
+
+    def test_no_full_bucket_gives_an_empty_list(self):
+        rows = daily("2026-01-01", [1] * 10)
+        self.assertEqual(metrics.buckets(rows, "2026-01-10", size=3, earliest="2026-01-09"), [])
+
+
 if __name__ == "__main__":
     unittest.main()
 

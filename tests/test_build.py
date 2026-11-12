@@ -250,6 +250,55 @@ class BuildTest(unittest.TestCase):
         f = self._falsification({"z": 20})
         self.assertEqual(f["c4"]["verdict"], "fires")  # 0.25 > 0.20
 
+    def test_panel_variants_add_one_candidate_or_leave_one_peer_out(self):
+        m = self.build()
+        variants = {v["label"]: v for v in m["panel_variants"]}
+        # NEAR BASE+NET = 5; peers A = 100, B = 300; candidates C = 500, D = 50.
+        expected = {"Panel": 200, "+ C": 300, "+ D": 100, "- A": 300, "- B": 100}
+        self.assertEqual(list(variants), list(expected))
+        for label, peer_median in expected.items():
+            with self.subTest(variant=label):
+                self.assertEqual(variants[label]["peer_median"], peer_median)
+                self.assertAlmostEqual(variants[label]["near_base_net_ratio"], 5 / peer_median)
+                self.assertEqual(variants[label]["c1_verdict"], "pending")  # no k in CONFIG
+
+    def test_c1_verdict_stability_across_panel_variants(self):
+        f = self._falsification({"k": 0.03})  # 5/200 = 0.025 holds, 5/100 = 0.05 fires
+        metrics_json = json.loads((self.out / "metrics.json").read_text())
+        verdicts = {v["label"]: v["c1_verdict"] for v in metrics_json["panel_variants"]}
+        self.assertEqual(verdicts["Panel"], f["c1"]["verdict"])
+        self.assertEqual(verdicts["+ D"], "fires")
+        self.assertFalse(metrics_json["c1_verdict_same_in_all_variants"])
+
+    def test_intents_30_day_buckets_since_the_regime_break(self):
+        write_snapshot(self.raw, CAPS)
+        config = {**CONFIG, "intents": {**CONFIG["intents"], "regime_break": "2026-09-12"}}
+        build.build(self.raw, self.out, config)
+        buckets = json.loads((self.out / "metrics.json").read_text())["intents"]["buckets_30d"]
+        self.assertEqual(buckets, [
+            {"start": "2026-09-12", "end": "2026-10-11", "net": 30, "gross": 120},
+            {"start": "2026-10-12", "end": "2026-11-10", "net": 30, "gross": 120},
+        ])
+
+    def test_sources_come_from_the_manifest_and_the_fee_methodology(self):
+        write_snapshot(self.raw, CAPS)
+        manifest = {"as_of": AS_OF, "sources": {
+            "defillama_a_dailyFees.json": "https://fees.test/a",
+            "coingecko_a_market_chart.json": "https://caps.test/a",
+            "defillama_near-intents_dailyRevenue.json": "https://fees.test/intents-net"}}
+        (self.raw / "MANIFEST.json").write_text(json.dumps(manifest))
+        fees = json.loads((self.raw / "defillama_a_dailyFees.json").read_text())
+        fees["methodologyURL"] = "https://method.test/a"
+        (self.raw / "defillama_a_dailyFees.json").write_text(json.dumps(fees))
+        build.build(self.raw, self.out, CONFIG)
+        m = json.loads((self.out / "metrics.json").read_text())
+        self.assertEqual(m["chains"]["A"]["sources"], {
+            "fees": "https://fees.test/a", "fees_methodology": "https://method.test/a",
+            "market_cap": "https://caps.test/a"})
+        self.assertEqual(m["chains"]["B"]["sources"],
+                         {"fees": None, "fees_methodology": None, "market_cap": None})
+        self.assertEqual(m["intents"]["sources"]["net"], "https://fees.test/intents-net")
+
     def test_missing_snapshot_fails_with_a_clear_message(self):
         with self.assertRaises(build.MissingSnapshot) as ctx:
             build.build(self.raw, self.out, CONFIG)
