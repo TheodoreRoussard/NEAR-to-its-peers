@@ -105,23 +105,27 @@
   ],
   "near_perimeters": {
     "BASE": {
+      "basis": "trailing_365",
       "denominator": 1164678.0,
       "multiple": 4080.146230544729,
       "ratio_to_peer_median": 3.0272234934232456
     },
     "BASE+NET": {
+      "basis": "trailing_365",
       "denominator": 10522982.05,
       "multiple": 451.5883928071866,
       "ratio_to_peer_median": 0.3350514699275002
     },
     "BASE+HOLDERS": {
-      "denominator": 12368197.840038314,
-      "multiple": 384.21576150043643,
-      "ratio_to_peer_median": 0.2850650231725495,
-      "holders_days": 261,
-      "holders_sum": 8011284.05
+      "basis": "trailing_365",
+      "denominator": 9175962.05,
+      "multiple": 517.881016247051,
+      "ratio_to_peer_median": 0.3842366156988627,
+      "holders_annualized_since_regime_break": 11203519.840038314,
+      "holders_days": 261
     },
     "BASE+GROSS": {
+      "basis": "trailing_365",
       "denominator": 55190943.0,
       "multiple": 86.1021083024143,
       "ratio_to_peer_median": 0.06388259399505457
@@ -151,6 +155,11 @@
       "net": 20592525.388888888,
       "gross": 76071913.0,
       "holders": 20592525.388888888
+    },
+    "missing_days": {
+      "net": [],
+      "gross": [],
+      "holders": []
     }
   },
   "falsification": {
@@ -178,6 +187,10 @@
       "threshold": null,
       "verdict": "fires",
       "policy": "none published",
+      "holdings_near": 2250000,
+      "outflows_near": 12000,
+      "checked_on": "2026-11-11",
+      "outflows_period": "cumulative, from the first buyback to buyback_checked_on",
       "source": "https://nearblocks.io/address/buybacks.multisignature.near"
     }
   }

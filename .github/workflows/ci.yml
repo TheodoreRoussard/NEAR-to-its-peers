@@ -24,7 +24,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: make judge-demo
       - name: Committed outputs match a rebuild of the committed snapshot
-        run: git status --porcelain && git diff --exit-code
+        run: test -z "$(git status --porcelain)"
 
   deploy-pages:
     # CD: publish the dashboard (docs/) to GitHub Pages after a green build on main.
@@ -32,6 +32,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:

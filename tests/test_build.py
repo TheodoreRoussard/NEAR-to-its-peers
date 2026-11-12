@@ -21,9 +21,10 @@ CONFIG = {
     "intents": {"defillama_slug": "near-intents", "regime_break": "2026-11-01",
                 "buyback_holdings_near": 2000, "buyback_outflows_near": 500,
                 "buyback_policy": "none published",
+                "buyback_outflows_period": "cumulative, from the first buyback to buyback_checked_on",
                 "buyback_checked_on": "2026-11-10", "buyback_source": "https://example.test/acct"},
     "falsification": {"c1": "F1", "c2": "F2", "c3": "F3", "c4": "F4", "thresholds": {}},
-    "windows": {"trailing_days": 365, "run_rate_days": 90, "max_missing_days": 3},
+    "windows": {"trailing_days": 365, "max_missing_days": 3},
 }
 
 # Fees are 1/day (365 a year) everywhere, so multiple = market cap / 365.
@@ -124,11 +125,27 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(p["BASE+GROSS"]["multiple"], 2)          # 3650 / (365 + 1460)
         self.assertAlmostEqual(p["BASE+NET"]["ratio_to_peer_median"], 5 / 200)
 
-    def test_holders_revenue_is_annualized_from_the_regime_break(self):
-        p = self.build()["near_perimeters"]["BASE+HOLDERS"]
+    def test_every_near_perimeter_is_a_trailing_365_day_sum(self):
+        for name, perimeter in self.build()["near_perimeters"].items():
+            with self.subTest(perimeter=name):
+                self.assertEqual(perimeter["basis"], "trailing_365")
+
+    def test_holders_perimeter_adds_the_full_trailing_holders_sum(self):
+        p = self.build()["near_perimeters"]
+        # Holders are 2/day from 1 Nov (10 days) and 0 before: trailing-365 sum = 20.
+        self.assertEqual(p["BASE+HOLDERS"]["denominator"], 365 + 20)
+        self.assertEqual(p["BASE+HOLDERS"]["multiple"], 3650 / 385)
+        self.assertEqual(p["BASE+NET"]["denominator"], 365 + 365)
+        self.assertEqual(p["BASE+GROSS"]["denominator"], 365 + 1460)
+
+    def test_holders_run_rate_since_the_regime_break_is_informational(self):
+        p = self.build()["near_perimeters"]
         # 10 days x 2 since 1 Nov -> 20, annualized 20 * 365 / 10 = 730
-        self.assertEqual(p["denominator"], 365 + 730)
-        self.assertEqual(p["holders_days"], 10)
+        self.assertEqual(p["BASE+HOLDERS"]["holders_annualized_since_regime_break"], 730)
+        self.assertEqual(p["BASE+HOLDERS"]["holders_days"], 10)
+        for name in ("BASE", "BASE+NET", "BASE+GROSS"):
+            self.assertNotIn("holders_days", p[name])
+            self.assertNotIn("holders_annualized_since_regime_break", p[name])
 
     def test_a_missing_day_is_scaled_and_reported(self):
         write_snapshot(self.raw, CAPS)
@@ -156,6 +173,17 @@ class BuildTest(unittest.TestCase):
                 self.assertIsNone(window[key])
         self.assertEqual(intents["run_rate_90d"],
                          {"net": None, "gross": None, "holders": None})
+
+    def test_intents_report_their_missing_days_over_the_trailing_window(self):
+        write_snapshot(self.raw, CAPS)
+        for name, gap in (("dailyRevenue", date(2026, 11, 5)), ("dailyHoldersRevenue", date(2026, 11, 7))):
+            path = self.raw / f"defillama_near-intents_{name}.json"
+            rows = json.loads(path.read_text())["totalDataChart"]
+            path.write_text(json.dumps({"totalDataChart": [r for r in rows if r[0] != ts(gap)]}))
+        build.build(self.raw, self.out, CONFIG)
+        intents = json.loads((self.out / "metrics.json").read_text())["intents"]
+        self.assertEqual(intents["missing_days"],
+                         {"net": ["2026-11-05"], "gross": [], "holders": ["2026-11-07"]})
 
     def test_intents_windows_and_run_rates_after_the_regime_break(self):
         write_snapshot(self.raw, CAPS)
@@ -185,6 +213,9 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(f["c2"]["formula"], "F2")
         self.assertEqual(f["c4"], {"formula": "F4", "statistic": 0.25, "threshold": None,
                                    "verdict": "fires", "policy": "none published",
+                                   "holdings_near": 2000, "outflows_near": 500,
+                                   "checked_on": "2026-11-10",
+                                   "outflows_period": "cumulative, from the first buyback to buyback_checked_on",
                                    "source": "https://example.test/acct"})
 
     def _falsification(self, thresholds, last_net=1, policy="burn"):

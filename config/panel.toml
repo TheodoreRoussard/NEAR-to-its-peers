@@ -66,12 +66,12 @@ buyback_account = "buybacks.multisignature.near"
 buyback_holdings_near = 2250000
 buyback_outflows_near = 12000
 buyback_policy = "none published"
+buyback_outflows_period = "cumulative, from the first buyback to buyback_checked_on"
 buyback_checked_on = "2026-11-11"
 buyback_source = "https://nearblocks.io/address/buybacks.multisignature.near"
 
 [windows]
 trailing_days = 365
-run_rate_days = 90
 # Up to this many missing days per window are filled by scaling (sum x expected / present); the dates are reported.
 max_missing_days = 3
 

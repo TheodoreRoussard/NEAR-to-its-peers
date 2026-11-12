@@ -3,6 +3,7 @@
 Series are lists of [unix_seconds, value] daily rows (DefiLlama format).
 Dates are ISO strings. Nothing here reads files, the network or the clock.
 """
+import math
 from datetime import date, datetime, timedelta, timezone
 from statistics import median
 
@@ -40,6 +41,11 @@ def missing_days(rows, as_of, days, allow_late_start=False):
     return _window(rows, as_of, days, allow_late_start)[1]
 
 
+def window_days(rows, as_of, days, allow_late_start=False):
+    """Length in days of the window `trailing_sum` / `annualized` actually use."""
+    return _window(rows, as_of, days, allow_late_start)[2]
+
+
 def trailing_sum(rows, as_of, days, allow_late_start=False, max_missing=0):
     """Sum of the `days` daily values ending on as_of. Zeros count as data.
 
@@ -49,12 +55,12 @@ def trailing_sum(rows, as_of, days, allow_late_start=False, max_missing=0):
     present, missing, length = _window(rows, as_of, days, allow_late_start)
     if len(missing) > max_missing:
         raise IncompleteSeries(f"{len(missing)} missing days, first {missing[0]}")
-    return sum(present.values()) * length / len(present)
+    return math.fsum(present.values()) * length / len(present)
 
 
 def annualized(rows, as_of, days, max_missing=0):
     """Run-rate: the sum over the available part of the window, scaled to 365 days."""
-    present, missing, length = _window(rows, as_of, days, allow_late_start=True)
+    length = window_days(rows, as_of, days, allow_late_start=True)
     return trailing_sum(rows, as_of, days, True, max_missing) * 365 / length
 
 
@@ -148,6 +154,10 @@ def change(last, prior):
     return last / prior - 1
 
 
+# The buyback_policy value meaning no burn or lock policy is published (C4 fires on it).
+NO_POLICY = "none published"
+
+
 def outflow_share(outflows, holdings):
     """outflows / holdings; None when holdings are zero."""
     return None if holdings == 0 else outflows / holdings
@@ -156,7 +166,7 @@ def outflow_share(outflows, holdings):
 def buyback_criterion(statistic, threshold, policy):
     """C4: fires on an outflow share above threshold/100, or whenever no policy is published."""
     result = criterion(statistic, threshold, ABOVE_PERCENT)
-    if policy == "none published":
+    if policy == NO_POLICY:
         result["verdict"] = "fires"
     return result
 

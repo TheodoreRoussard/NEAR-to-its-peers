@@ -16,6 +16,8 @@ This rebuilds everything offline from the committed data snapshot in `data/raw/`
 
 Optional: `make all` fetches fresh data (needs network), then rebuilds.
 
+`.claude/settings.json` holds a Claude Code hook that only runs `make test` after edits to `src/` or `tests/`; it does nothing outside Claude Code.
+
 ## Data sources
 
 DefiLlama (fees and revenue) and CoinGecko (market caps). Credits and methodology links will be added with the first data snapshot.

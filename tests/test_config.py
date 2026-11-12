@@ -3,6 +3,8 @@ import tomllib
 import unittest
 from pathlib import Path
 
+from src import metrics
+
 CONFIG = Path(__file__).resolve().parent.parent / "config" / "panel.toml"
 
 
@@ -41,11 +43,24 @@ class PanelConfigTest(unittest.TestCase):
         thresholds = self.config["falsification"]["thresholds"]
         self.assertLessEqual(set(thresholds), {"k", "x", "y", "z"})
 
+    def test_thresholds_are_numbers(self):
+        # bool is an int subclass in Python, so it is excluded explicitly; the empty table passes.
+        for key, value in self.config["falsification"]["thresholds"].items():
+            with self.subTest(threshold=key):
+                self.assertIsInstance(value, (int, float))
+                self.assertNotIsInstance(value, bool)
+
+    def test_buyback_policy_is_a_known_value(self):
+        self.assertIn(self.config["intents"]["buyback_policy"],
+                      {metrics.NO_POLICY, "burn", "lock"})
+
     def test_buyback_constants_are_sourced(self):
         intents = self.config["intents"]
         self.assertEqual(intents["buyback_holdings_near"], 2250000)
         self.assertEqual(intents["buyback_outflows_near"], 12000)
         self.assertEqual(intents["buyback_policy"], "none published")
+        self.assertEqual(intents["buyback_outflows_period"],
+                         "cumulative, from the first buyback to buyback_checked_on")
         self.assertEqual(intents["buyback_checked_on"], "2026-11-11")
         self.assertTrue(intents["buyback_source"].startswith("https://nearblocks.io/address/"))
 
