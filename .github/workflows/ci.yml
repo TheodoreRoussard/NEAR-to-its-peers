@@ -1,11 +1,10 @@
 name: ci-cd
 
-# Workflow: work on `dev`, open a pull request dev -> main, merge only when CI is green.
+# Workflow: one topic branch and pull request per subject (stacked PRs allowed); merge only when CI is green.
 on:
   push:
-    branches: [dev, main]
-  pull_request:
     branches: [main]
+  pull_request:  # every PR, including stacked PRs whose base is another topic branch
 
 permissions:
   contents: read
