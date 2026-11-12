@@ -6,25 +6,53 @@
       "market_cap": 4752056551.498374,
       "fees_trailing": 1164678.0,
       "multiple": 4080.146230544729,
-      "missing_days": []
+      "missing_days": [],
+      "float_growth": {
+        "start": "2025-11-12",
+        "end": "2026-11-10",
+        "days": 363,
+        "growth": 0.025318352899319052,
+        "annualized": 0.0254596088612149
+      }
     },
     "Solana": {
       "market_cap": 51195827113.39133,
       "fees_trailing": 231392824.0,
       "multiple": 221.25071222343234,
-      "missing_days": []
+      "missing_days": [],
+      "float_growth": {
+        "start": "2025-11-12",
+        "end": "2026-11-10",
+        "days": 363,
+        "growth": 0.06884695232240046,
+        "annualized": 0.0692391141317279
+      }
     },
     "Ethereum": {
       "market_cap": 260555474131.4111,
       "fees_trailing": 175978356.0,
       "multiple": 1480.6109117840099,
-      "missing_days": []
+      "missing_days": [],
+      "float_growth": {
+        "start": "2025-11-12",
+        "end": "2026-11-10",
+        "days": 363,
+        "growth": 0.008167525105046147,
+        "annualized": 0.008212709527479545
+      }
     },
     "Avalanche": {
       "market_cap": 3853818812.9286513,
       "fees_trailing": 2671229.0,
       "multiple": 1442.7137519578635,
-      "missing_days": []
+      "missing_days": [],
+      "float_growth": {
+        "start": "2025-11-12",
+        "end": "2026-11-10",
+        "days": 363,
+        "growth": 0.04348603690663633,
+        "annualized": 0.04373079364786392
+      }
     },
     "Sui": {
       "market_cap": 3495381542.234304,
@@ -33,13 +61,27 @@
       "missing_days": [
         "2026-07-30",
         "2026-11-05"
-      ]
+      ],
+      "float_growth": {
+        "start": "2025-11-12",
+        "end": "2026-11-10",
+        "days": 363,
+        "growth": 0.12494497426189222,
+        "annualized": 0.12567493225340076
+      }
     },
     "Aptos": {
       "market_cap": 519052425.69434065,
       "fees_trailing": 1221943.0,
       "multiple": 424.77629946269235,
-      "missing_days": []
+      "missing_days": [],
+      "float_growth": {
+        "start": "2025-11-12",
+        "end": "2026-11-10",
+        "days": 363,
+        "growth": 0.2207889885474612,
+        "annualized": 0.22213156749115903
+      }
     }
   },
   "peer_median_multiple": 1347.8179722802088,

@@ -47,7 +47,11 @@ def write_snapshot(raw, market_caps):
     for cg, cap in market_caps.items():
         caps = [[ts(date.fromisoformat(AS_OF)) * 1000, cap],
                 [ts(date.fromisoformat(AS_OF) + timedelta(days=1)) * 1000, cap * 99]]
-        (raw / f"coingecko_{cg}_market_chart.json").write_text(json.dumps({"market_caps": caps}))
+        start = ts(date.fromisoformat(AS_OF) - timedelta(days=100)) * 1000
+        caps.insert(0, [start, cap / 2])  # price is 2 throughout: float doubles in 100 days
+        prices = [[row[0], 2] for row in caps]
+        (raw / f"coingecko_{cg}_market_chart.json").write_text(
+            json.dumps({"prices": prices, "market_caps": caps}))
     (raw / "MANIFEST.json").write_text(json.dumps({"as_of": AS_OF}))
 
 
@@ -64,6 +68,13 @@ class BuildTest(unittest.TestCase):
 
     def test_metrics_carry_the_snapshot_as_of_date(self):
         self.assertEqual(self.build()["as_of"], AS_OF)
+
+    def test_every_chain_carries_its_float_growth(self):
+        for chain in self.build()["chains"].values():
+            fg = chain["float_growth"]
+            self.assertEqual((fg["start"], fg["end"], fg["days"]), ("2026-08-02", AS_OF, 100))
+            self.assertEqual(fg["growth"], 1.0)
+            self.assertAlmostEqual(fg["annualized"], 2 ** 3.65 - 1)
 
     def test_chain_multiples_use_the_as_of_market_cap_and_trailing_fees(self):
         chains = self.build()["chains"]

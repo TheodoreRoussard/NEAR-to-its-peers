@@ -106,3 +106,36 @@ class ShiftDateTest(unittest.TestCase):
     def test_shifts_back_and_forward(self):
         self.assertEqual(metrics.shift_date("2026-11-10", -90), "2026-08-12")
         self.assertEqual(metrics.shift_date("2026-08-12", 90), "2026-11-10")
+
+
+class FloatGrowthTest(unittest.TestCase):
+    @staticmethod
+    def rows(day_values):
+        return [[ts(d) * 1000, v] for d, v in day_values]
+
+    def test_growth_and_annualized_over_100_days(self):
+        prices = self.rows([("2026-08-02", 2.0), ("2026-11-10", 2.0)])
+        caps = self.rows([("2026-08-02", 200.0), ("2026-11-10", 220.0)])
+        out = metrics.float_growth(prices, caps, "2026-11-10")
+        self.assertEqual((out["start"], out["end"], out["days"]),
+                         ("2026-08-02", "2026-11-10", 100))
+        self.assertAlmostEqual(out["growth"], 0.10)
+        self.assertAlmostEqual(out["annualized"], 1.1 ** 3.65 - 1)
+
+    def test_short_history_starts_at_earliest_date_present(self):
+        prices = self.rows([("2026-06-01", 2.0), ("2026-11-10", 2.0)])
+        caps = self.rows([("2026-06-01", 100.0), ("2026-11-10", 100.0)])
+        out = metrics.float_growth(prices, caps, "2026-11-10")
+        self.assertEqual(out["start"], "2026-06-01")
+
+    def test_start_is_never_older_than_max_days(self):
+        prices = self.rows([("2025-01-01", 2.0), ("2025-11-10", 2.0), ("2026-11-10", 2.0)])
+        caps = self.rows([("2025-01-01", 100.0), ("2025-11-10", 100.0), ("2026-11-10", 100.0)])
+        out = metrics.float_growth(prices, caps, "2026-11-10")
+        self.assertEqual((out["start"], out["days"]), ("2025-11-10", 365))
+
+    def test_missing_as_of_raises(self):
+        prices = self.rows([("2026-08-02", 2.0)])
+        caps = self.rows([("2026-08-02", 200.0)])
+        with self.assertRaises(metrics.IncompleteSeries):
+            metrics.float_growth(prices, caps, "2026-11-10")
