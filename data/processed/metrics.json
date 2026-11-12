@@ -133,6 +133,22 @@
       "near_base_net_ratio_to_median_with_candidate": 0.3236575946331436
     }
   ],
+  "panel": {
+    "rule": "Smart-contract L1s with a DefiLlama chain-fee series and CoinGecko market-cap rank <= 30; excluding BTC, stablecoins, L2s, exchange tokens; fees counted as base-layer fees only.",
+    "fee_definition": "base-layer fees (gas, burn and validator revenue)",
+    "reasons": {
+      "NEAR": "Subject of the thesis.",
+      "Solana": "Leader, reference point.",
+      "Ethereum": "Leader, reference point. Excludes its layer-2s.",
+      "Avalanche": "Comparable size.",
+      "Sui": "Comparable size.",
+      "Aptos": "Comparable size."
+    },
+    "candidate_reasons": {
+      "Tron": "Large smart-contract L1 with a DefiLlama chain-fee series and CoinGecko rank <= 30; the panel rule admits it.",
+      "Cardano": "Smart-contract L1 with a DefiLlama chain-fee series and CoinGecko rank <= 30; the panel rule admits it."
+    }
+  },
   "panel_variants": [
     {
       "label": "Panel",
