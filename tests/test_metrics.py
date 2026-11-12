@@ -139,3 +139,66 @@ class FloatGrowthTest(unittest.TestCase):
         caps = self.rows([("2026-08-02", 200.0)])
         with self.assertRaises(metrics.IncompleteSeries):
             metrics.float_growth(prices, caps, "2026-11-10")
+
+
+class CriterionTest(unittest.TestCase):
+    def test_fires_when_the_statistic_is_above_the_threshold(self):
+        self.assertEqual(metrics.criterion(3.0, 2.0, metrics.ABOVE)["verdict"], "fires")
+
+    def test_holds_when_the_statistic_is_at_or_below_the_threshold(self):
+        self.assertEqual(metrics.criterion(2.0, 2.0, metrics.ABOVE)["verdict"], "holds")
+        self.assertEqual(metrics.criterion(1.0, 2.0, metrics.ABOVE)["verdict"], "holds")
+
+    def test_drop_criteria_fire_below_minus_threshold(self):
+        self.assertEqual(metrics.criterion(-0.5, 0.3, metrics.DROP)["verdict"], "fires")
+        self.assertEqual(metrics.criterion(-0.3, 0.3, metrics.DROP)["verdict"], "holds")
+        self.assertEqual(metrics.criterion(0.1, 0.3, metrics.DROP)["verdict"], "holds")
+
+    def test_percent_criteria_compare_with_threshold_over_100(self):
+        self.assertEqual(metrics.criterion(0.06, 5, metrics.ABOVE_PERCENT)["verdict"], "fires")
+        self.assertEqual(metrics.criterion(0.04, 5, metrics.ABOVE_PERCENT)["verdict"], "holds")
+
+    def test_a_null_statistic_is_pending(self):
+        self.assertEqual(metrics.criterion(None, 2.0, metrics.ABOVE)["verdict"], "pending")
+
+    def test_a_missing_threshold_is_pending(self):
+        out = metrics.criterion(3.0, None, metrics.ABOVE)
+        self.assertEqual(out, {"statistic": 3.0, "threshold": None, "verdict": "pending"})
+
+    def test_zero_threshold_is_a_real_threshold(self):
+        self.assertEqual(metrics.criterion(0.1, 0, metrics.ABOVE)["verdict"], "fires")
+
+    def test_result_carries_statistic_and_threshold(self):
+        self.assertEqual(metrics.criterion(1.0, 2.0, metrics.ABOVE),
+                         {"statistic": 1.0, "threshold": 2.0, "verdict": "holds"})
+
+
+class ChangeTest(unittest.TestCase):
+    def test_change_is_last_over_prior_minus_one(self):
+        self.assertEqual(metrics.change(150, 100), 0.5)
+        self.assertEqual(metrics.change(50, 100), -0.5)
+
+    def test_change_is_none_when_a_side_is_missing_or_prior_is_zero(self):
+        self.assertIsNone(metrics.change(None, 100))
+        self.assertIsNone(metrics.change(100, None))
+        self.assertIsNone(metrics.change(100, 0))
+
+
+class BuybackCriterionTest(unittest.TestCase):
+    def test_no_published_policy_fires_even_without_a_threshold(self):
+        out = metrics.buyback_criterion(0.25, None, "none published")
+        self.assertEqual(out["verdict"], "fires")
+
+    def test_no_published_policy_fires_even_when_outflows_are_small(self):
+        self.assertEqual(metrics.buyback_criterion(0.01, 5, "none published")["verdict"], "fires")
+
+    def test_with_a_policy_the_outflow_share_decides(self):
+        self.assertEqual(metrics.buyback_criterion(0.06, 5, "burn")["verdict"], "fires")
+        self.assertEqual(metrics.buyback_criterion(0.04, 5, "burn")["verdict"], "holds")
+
+    def test_with_a_policy_and_no_threshold_it_is_pending(self):
+        self.assertEqual(metrics.buyback_criterion(0.04, None, "burn")["verdict"], "pending")
+
+    def test_outflow_share_is_outflows_over_holdings(self):
+        self.assertEqual(metrics.outflow_share(500, 2000), 0.25)
+        self.assertIsNone(metrics.outflow_share(500, 0))

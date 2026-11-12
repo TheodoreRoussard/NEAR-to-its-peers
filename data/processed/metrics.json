@@ -134,5 +134,33 @@
       "gross": 76071913.0,
       "holders": 20592525.388888888
     }
+  },
+  "falsification": {
+    "c1": {
+      "formula": "NEAR BASE+NET multiple / median(peer multiples) > k (trailing 365 days)",
+      "statistic": 0.3350514699275002,
+      "threshold": null,
+      "verdict": "pending"
+    },
+    "c2": {
+      "formula": "Intents net revenue, last 90 days < (1 - x) * prior 90 days (data after regime_break)",
+      "statistic": 1.9111308590446652,
+      "threshold": null,
+      "verdict": "pending"
+    },
+    "c3": {
+      "formula": "net / gross, last 90 days < (1 - y) * prior 90 days (data after regime_break)",
+      "statistic": 0.3819213750038801,
+      "threshold": null,
+      "verdict": "pending"
+    },
+    "c4": {
+      "formula": "outflows from the buyback account > z% of holdings, or no burn/lock policy",
+      "statistic": 0.005333333333333333,
+      "threshold": null,
+      "verdict": "fires",
+      "policy": "none published",
+      "source": "https://nearblocks.io/address/buybacks.multisignature.near"
+    }
   }
 }

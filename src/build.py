@@ -43,6 +43,28 @@ def _intents_window(series, end, regime_break, gaps):
     return window
 
 
+def _falsification(config, near_perimeters, last, prior):
+    """Statistic and verdict of each criterion; a verdict needs its threshold in the config."""
+    formulas = config["falsification"]
+    thresholds = formulas.get("thresholds", {})
+    intents = config["intents"]
+
+    def entry(key, statistic, threshold_key, fires_if):
+        result = m.criterion(statistic, thresholds.get(threshold_key), fires_if)
+        return {"formula": formulas[key], **result}
+
+    c4_statistic = m.outflow_share(intents["buyback_outflows_near"],
+                                   intents["buyback_holdings_near"])
+    c4 = m.buyback_criterion(c4_statistic, thresholds.get("z"), intents["buyback_policy"])
+    return {
+        "c1": entry("c1", near_perimeters["BASE+NET"]["ratio_to_peer_median"], "k", m.ABOVE),
+        "c2": entry("c2", m.change(last["net"], prior["net"]), "x", m.DROP),
+        "c3": entry("c3", m.change(last["net_over_gross"], prior["net_over_gross"]), "y", m.DROP),
+        "c4": {"formula": formulas["c4"], **c4,
+               "policy": intents["buyback_policy"], "source": intents["buyback_source"]},
+    }
+
+
 def compute(raw_dir, config, as_of):
     days = config["windows"]["trailing_days"]
     gaps = config["windows"]["max_missing_days"]
@@ -100,11 +122,14 @@ def compute(raw_dir, config, as_of):
     run_rate = {key: None if last[key] is None else last[key] * 365 / RUN_RATE_DAYS
                 for key in ("net", "gross", "holders")}
 
+    falsification = _falsification(config, near_perimeters, last, prior)
+
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
             "peer_median_multiple": peer_median, "near_perimeters": near_perimeters,
             "intents": {"regime_break": break_day,
                         "windows": {"last_90d": last, "prior_90d": prior},
-                        "run_rate_90d": run_rate}}
+                        "run_rate_90d": run_rate},
+            "falsification": falsification}
 
 
 def build(raw_dir: Path, out_dir: Path, config: dict) -> dict:

@@ -117,3 +117,46 @@ def float_growth(prices, market_caps, as_of, max_days=365):
     return {"start": start.isoformat(), "end": as_of, "days": days,
             "growth": s_end / s_start - 1,
             "annualized": (s_end / s_start) ** (365 / days) - 1}
+
+
+# How a criterion compares its statistic with its threshold.
+ABOVE = "above"                  # fires if statistic > threshold
+DROP = "drop"                    # fires if statistic < -threshold
+ABOVE_PERCENT = "above_percent"  # fires if statistic > threshold / 100
+
+
+def criterion(statistic, threshold, fires_if):
+    """Statistic, threshold and verdict of one falsification criterion.
+
+    The verdict is "pending" when the statistic is None or the threshold is
+    missing (None); otherwise "fires" or "holds" according to `fires_if`.
+    """
+    result = {"statistic": statistic, "threshold": threshold, "verdict": "pending"}
+    if statistic is None or threshold is None:
+        return result
+    fires = {ABOVE: statistic > threshold,
+             DROP: statistic < -threshold,
+             ABOVE_PERCENT: statistic > threshold / 100}[fires_if]
+    result["verdict"] = "fires" if fires else "holds"
+    return result
+
+
+def change(last, prior):
+    """last / prior - 1; None when a side is missing or the prior is zero."""
+    if last is None or prior is None or prior == 0:
+        return None
+    return last / prior - 1
+
+
+def outflow_share(outflows, holdings):
+    """outflows / holdings; None when holdings are zero."""
+    return None if holdings == 0 else outflows / holdings
+
+
+def buyback_criterion(statistic, threshold, policy):
+    """C4: fires on an outflow share above threshold/100, or whenever no policy is published."""
+    result = criterion(statistic, threshold, ABOVE_PERCENT)
+    if policy == "none published":
+        result["verdict"] = "fires"
+    return result
+

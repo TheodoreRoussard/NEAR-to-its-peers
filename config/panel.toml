@@ -47,6 +47,12 @@ defillama_slug = "near-intents"
 # The revenue booking switched from lump sums to daily on this date; run-rates use data after it.
 regime_break = "2026-02-23"
 buyback_account = "buybacks.multisignature.near"
+# Sourced constants for C4 (NEAR), read on-chain on the date below.
+buyback_holdings_near = 2250000
+buyback_outflows_near = 12000
+buyback_policy = "none published"
+buyback_checked_on = "2026-11-11"
+buyback_source = "https://nearblocks.io/address/buybacks.multisignature.near"
 
 [windows]
 trailing_days = 365
@@ -60,3 +66,6 @@ c1 = "NEAR BASE+NET multiple / median(peer multiples) > k (trailing 365 days)"
 c2 = "Intents net revenue, last 90 days < (1 - x) * prior 90 days (data after regime_break)"
 c3 = "net / gross, last 90 days < (1 - y) * prior 90 days (data after regime_break)"
 c4 = "outflows from the buyback account > z% of holdings, or no burn/lock policy"
+
+# Left empty on purpose: k, x, y, z are set by Théo. A missing threshold gives verdict "pending".
+[falsification.thresholds]

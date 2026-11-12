@@ -14,7 +14,11 @@ CONFIG = {
         {"name": "A", "defillama_slug": "a", "coingecko_id": "a"},
         {"name": "B", "defillama_slug": "b", "coingecko_id": "b"},
     ],
-    "intents": {"defillama_slug": "near-intents", "regime_break": "2026-11-01"},
+    "intents": {"defillama_slug": "near-intents", "regime_break": "2026-11-01",
+                "buyback_holdings_near": 2000, "buyback_outflows_near": 500,
+                "buyback_policy": "none published",
+                "buyback_checked_on": "2026-11-10", "buyback_source": "https://example.test/acct"},
+    "falsification": {"c1": "F1", "c2": "F2", "c3": "F3", "c4": "F4", "thresholds": {}},
     "windows": {"trailing_days": 365, "run_rate_days": 90, "max_missing_days": 3},
 }
 
@@ -142,6 +146,51 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(intents["run_rate_90d"],
                          {"net": 90 * 365 / 90, "gross": 360 * 365 / 90, "holders": 180 * 365 / 90})
         self.assertEqual(intents["run_rate_90d"]["net"], 365)
+
+    def test_falsification_is_pending_without_thresholds_but_c4_fires_on_policy(self):
+        f = self.build()["falsification"]
+        # NEAR BASE+NET: multiple 3650 / (365 + 365) = 5; peer multiples 100 and 300, median 200.
+        self.assertEqual(f["c1"], {"formula": "F1", "statistic": 5 / 200,
+                                   "threshold": None, "verdict": "pending"})
+        for key in ("c2", "c3"):  # windows start before the regime break: null
+            self.assertEqual(f[key]["statistic"], None)
+            self.assertEqual(f[key]["verdict"], "pending")
+        self.assertEqual(f["c2"]["formula"], "F2")
+        self.assertEqual(f["c4"], {"formula": "F4", "statistic": 0.25, "threshold": None,
+                                   "verdict": "fires", "policy": "none published",
+                                   "source": "https://example.test/acct"})
+
+    def _falsification(self, thresholds, last_net=1, policy="burn"):
+        write_snapshot(self.raw, {"near": 3650, "a": 36500, "b": 109500})
+        rows = daily(lambda d: last_net if d > date(2026, 8, 12) else 2)
+        rows[-1][1] = 10_000
+        (self.raw / "defillama_near-intents_dailyRevenue.json").write_text(
+            json.dumps({"totalDataChart": rows}))
+        config = {**CONFIG,
+                  "intents": {**CONFIG["intents"], "regime_break": "2025-01-01",
+                              "buyback_policy": policy},
+                  "falsification": {**CONFIG["falsification"], "thresholds": thresholds}}
+        build.build(self.raw, self.out, config)
+        return json.loads((self.out / "metrics.json").read_text())["falsification"]
+
+    def test_c2_and_c3_compare_the_last_90_days_with_the_prior_90(self):
+        # last net 90 (1/day) vs prior net 180 (2/day): -50%. Gross is 360 in both
+        # windows, so net/gross goes 0.25 vs 0.5: also -50%.
+        f = self._falsification({"x": 0.4, "y": 0.6})
+        self.assertEqual(f["c2"]["statistic"], -0.5)
+        self.assertEqual(f["c2"]["verdict"], "fires")
+        self.assertEqual(f["c3"]["statistic"], -0.5)
+        self.assertEqual(f["c3"]["verdict"], "holds")
+
+    def test_c1_and_c4_use_their_thresholds_when_set(self):
+        f = self._falsification({"k": 0.01, "z": 30})
+        self.assertEqual(f["c1"]["verdict"], "fires")  # 0.025 > 0.01
+        self.assertEqual(f["c4"]["verdict"], "holds")  # policy exists, 0.25 <= 0.30
+        self.assertEqual(f["c4"]["threshold"], 30)
+
+    def test_c4_fires_when_the_outflow_share_exceeds_z_percent(self):
+        f = self._falsification({"z": 20})
+        self.assertEqual(f["c4"]["verdict"], "fires")  # 0.25 > 0.20
 
     def test_missing_snapshot_fails_with_a_clear_message(self):
         with self.assertRaises(build.MissingSnapshot) as ctx:
