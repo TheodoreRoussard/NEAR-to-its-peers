@@ -213,6 +213,29 @@ def bottom_line(m, v):
     return f"{valuation}, {revenue}, {holders}"
 
 
+def outlook(m, v, money=fmt_usd):
+    """What a holder can rely on today, and the observable events that would change it."""
+    f = m["falsification"]
+    watch = []
+    if f["c4"]["verdict"] == "fires":
+        today = (f"For a holder today, the reading that applies is the like-for-like one: on "
+                 f"base-layer fees NEAR is valued at {v['base_ratio']} times the peer median, "
+                 f"{base_position(m)}.")
+        watch.append("a published burn or lock policy for the buyback account (C4)")
+    elif f["c4"]["verdict"] == "holds":
+        today = ("The bought-back NEAR is provably held, so the captured-revenue reading "
+                 "applies to holders.")
+    else:
+        return ""
+    level = m.get("margins", {}).get("c2", {}).get("last_net_fires_below")
+    if level is not None and f["c2"]["verdict"] == "holds":
+        watch.append(f"Intents net revenue staying above {money(level)} per {v['window_days']}-day "
+                     f"window (C2)")
+    if not watch:
+        return today
+    return f"{today} The long-term case turns on {listing(watch)}."
+
+
 def c1_margin(m, v, money=fmt_usd):
     c1, margin = m["falsification"]["c1"], m.get("margins", {}).get("c1", {})
     breakeven, share = margin.get("intents_net_breakeven"), margin.get("intents_net_drop_to_fire")
@@ -230,11 +253,11 @@ def post_break(m):
     pb, c1 = m.get("post_break_reading"), m["falsification"]["c1"]
     if not pb or pb["ratio_to_peer_median"] is None:
         return ""
-    tail = ("too" if pb["c1_verdict"] == c1["verdict"]
-            else f"too, while it {c1['verdict']} on the trailing year")
+    tail = (" too" if pb["c1_verdict"] == c1["verdict"]
+            else f", while it {c1['verdict']} on the trailing year")
     return (f"Counting only Intents revenue booked since the regime break, annualized, the ratio "
             f"is {fmt_ratio(pb['ratio_to_peer_median'])} ({fmt_multiple(pb['multiple'])}): "
-            f"C1 {pb['c1_verdict']} on that reading {tail}.")
+            f"C1 {pb['c1_verdict']} on that reading{tail}.")
 
 
 def like_for_like(m, v):
@@ -320,7 +343,8 @@ def basics(m, money=fmt_usd):
                                            dates(prior["start"], prior["end"]))
 
     c4 = f["c4"]
-    v.update(holdings=f"{c4['holdings_near']:,} NEAR", outflows=f"{c4['outflows_near']:,} NEAR",
+    v.update(holdings=f"about {c4['holdings_near']:,} NEAR",
+             outflows=f"about {c4['outflows_near']:,} NEAR",
              buyback_policy=c4["policy"], buyback_checked_on=fmt_day(c4["checked_on"]),
              buyback_source=c4["source"],
              buyback_account=c4["source"].rsplit("/", 1)[-1])

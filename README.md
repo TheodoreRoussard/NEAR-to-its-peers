@@ -4,11 +4,13 @@
 
 **What it is.** A reproducible investment thesis on NEAR, built as a data pipeline. It compares NEAR's market cap per dollar of on-chain fees with five peer chains (Solana, Ethereum, Avalanche, Sui, Aptos). It also tests four falsification criteria that would prove the thesis wrong.
 
-**The problem it addresses.** NEAR's base-layer fees are small, so on fees alone NEAR looks expensive. Most of its recent revenue comes from NEAR Intents, but which part of that revenue can fairly count for NEAR token holders is unclear. This project answers both questions with four explicit perimeters (BASE, BASE+NET, BASE+HOLDERS, BASE+GROSS), and states in advance what result would change the conclusion.
+**The problem it addresses.** NEAR's base-layer fees are small, so on fees alone NEAR looks expensive. Most of its recent revenue comes from NEAR Intents, but which part of that revenue can fairly count for NEAR token holders is unclear. This project answers both questions with four explicit perimeters (BASE, BASE+NET, BASE+HOLDERS, BASE+GROSS), and states explicit tripwires that would change the conclusion, with thresholds frozen in a tagged commit (`thresholds-frozen`) after the first numbers were seen.
+
+**Scope versus the track brief.** The track points to on-chain usage data: the NEAR BigQuery dataset (active accounts, transactions) and the NEAR Intents Explorer API (swap volume). This project does not use them. BigQuery queries are billed to a Google Cloud account, and the Explorer API needs a partner token; either would break the keyless, offline, one-command rebuild below. The thesis relies instead on DefiLlama's NEAR Intents revenue series, which DefiLlama states reconciles with revenue.near.org and the on-chain buyback. Usage data would explain where that revenue comes from, not change the valuation measured here.
 
 **Outputs:**
 - [`THESIS.md`](THESIS.md): the thesis. It covers the claim, the evidence for and against, what would change the conclusion, the method and the limitations.
-- [Dashboard](https://theodoreroussard.github.io/NEAR-to-its-peers/) (`docs/index.html`): each chart with its source, its method and one plain sentence on what it shows.
+- [Dashboard](https://theodoreroussard.github.io/NEAR-to-its-peers/) (`docs/index.html`): each chart with its method and one plain sentence on what it shows, and every source in one block at the end.
 - [`data/processed/metrics.json`](data/processed/metrics.json): every number used by the two above.
 
 ## Try it
@@ -75,7 +77,7 @@ src/thesis.py  metrics.json + THESIS.template.md ──► THESIS.md
 
 - **Built during the hackathon.** The first commit is dated 2026-11-11, after the 2026-10-19 announcement. There is no pre-hackathon code, so there is no baseline to separate.
 - **Other chains.** Data from Solana, Ethereum, Avalanche, Sui, Aptos, Tron and Cardano is used only as a comparison. There is no existing product on another chain.
-- **Libraries, templates, boilerplate.** None. Only the Python standard library is used. CI uses the standard GitHub Actions `actions/checkout`, `actions/setup-python`, `actions/upload-pages-artifact` and `actions/deploy-pages`.
+- **Libraries, templates, boilerplate.** None in the code: only the Python standard library is used. The dashboard design was reviewed with [Impeccable](https://impeccable.style), an AI design-review tool used during development; it adds no runtime code (its context files are `PRODUCT.md`, `DESIGN.md` and `.impeccable/`). CI uses the standard GitHub Actions `actions/checkout`, `actions/setup-python`, `actions/upload-pages-artifact` and `actions/deploy-pages`.
 - **AI-written code.** The code, tests and documents were written with [Claude Code](https://claude.com/claude-code) (Anthropic) as a coding assistant, under the author's direction. The author made and approved the decisions on method, the peer panel and the falsification thresholds. `CLAUDE.md` holds the rules the assistant follows in this repository.
 - **Other projects.** None.
 

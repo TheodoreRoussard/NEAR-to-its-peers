@@ -156,6 +156,31 @@ class ConditionalProseTest(unittest.TestCase):
     def test_post_break_reading_is_reported(self):
         self.assertIn("since the regime break", thesis.values(REAL)["post_break"])
 
+    def test_post_break_reading_says_too_only_when_verdicts_agree(self):
+        self.assertIn("on that reading too.", thesis.values(REAL)["post_break"])
+        mixed = with_verdict(REAL, "c1", "fires", 1.4)
+        text = thesis.values(mixed)["post_break"]
+        self.assertIn("holds on that reading, while it fires on the trailing year", text)
+        self.assertNotIn("too", text)
+
+    def test_outlook_names_the_holder_reading_and_what_would_change_it(self):
+        text = thesis.values(REAL)["outlook"]
+        self.assertIn(thesis.n.fmt_ratio(REAL["near_perimeters"]["BASE"]["ratio_to_peer_median"]),
+                      text)
+        self.assertIn("burn or lock policy", text)
+        self.assertIn(thesis.usd(REAL["margins"]["c2"]["last_net_fires_below"]), text)
+        self.assertIn("{{outlook}}", (ROOT / "THESIS.template.md").read_text())
+        held = copy.deepcopy(REAL)
+        held["falsification"]["c4"].update(verdict="holds", policy="burn")
+        self.assertNotIn("burn or lock policy", thesis.values(held)["outlook"])
+        for banned in ("cheapest", "returned to the token"):
+            self.assertNotIn(banned, text)
+
+    def test_buyback_figures_are_marked_as_rounded(self):
+        v = thesis.values(REAL)
+        self.assertTrue(v["holdings"].startswith("about "))
+        self.assertTrue(v["outflows"].startswith("about "))
+
     def test_holders_note_follows_the_data(self):
         self.assertIn("not a separate test", thesis.values(REAL)["holders_note"])
         m = copy.deepcopy(REAL)

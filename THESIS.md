@@ -12,6 +12,8 @@ The measure is a **multiple**: market cap divided by the fees summed over the tr
 
 Counting the Intents revenue its ecosystem captures, NEAR is valued at 0.33 times the peer median, below its typical peer; like for like, on base-layer fees alone, it is valued at 3.07 times, higher than every peer. On the captured-revenue reading, the Intents revenue behind it held up over the last window, but holders do not yet provably capture that revenue. The investment case rests on the treasury burning or locking what it buys back; until then the strict holder reading is BASE.
 
+For a holder today, the reading that applies is the like-for-like one: on base-layer fees NEAR is valued at 3.07 times the peer median, higher than every peer. The long-term case turns on a published burn or lock policy for the buyback account (C4) and Intents net revenue staying above \$0.87M per 90-day window (C2).
+
 > **Why two numbers.** Peers are measured on base-layer fees only. The first number (BASE+NET, 441x) also counts the application revenue NEAR captures through Intents, which no peer gets for its own applications; the second (BASE, 4,072x) is the like-for-like comparison.
 
 **Verdicts: C1, C2 and C3 hold; C4 fires.** The evidence for each one follows.
@@ -29,7 +31,7 @@ Counting the Intents revenue its ecosystem captures, NEAR is valued at 0.33 time
 - Peers are measured on base-layer fees only, while BASE+NET adds the application revenue NEAR captures through Intents; no peer gets the same credit for its own applications. Like for like, on base-layer fees alone, NEAR trades at 4,072x, 3.07 times the peer median: higher than every peer.
 - Over 30-day blocks, Intents net revenue went from \$0.50M (18 Mar 2026 to 16 Apr 2026) to a peak of \$2.28M (14 Sep 2026 to 13 Oct 2026); the latest block, \$1.84M, is below that peak.
 - Aptos ranks 104 on CoinGecko on 12 Nov 2026, outside the rule's top 30; it stays in the panel, which was frozen with the thresholds. Without it, the NEAR BASE+NET ratio is 0.32 and C1 holds.
-- No burn or lock policy is published for the buyback account, which holds 2,250,000 NEAR; 12,000 NEAR have already left it. The bought-back NEAR can be spent again, so it is not provably held for holders: C4 fires, and the strict holder reading stays BASE (4,072x, 3.07 times the peer median). C4 has two tests: the policy test fires, while the outflow-share test alone passes (0.53% of the holdings, against z = 1%).
+- No burn or lock policy is published for the buyback account, which holds about 2,250,000 NEAR; about 12,000 NEAR have already left it. The bought-back NEAR can be spent again, so it is not provably held for holders: C4 fires, and the strict holder reading stays BASE (4,072x, 3.07 times the peer median). C4 has two tests: the policy test fires, while the outflow-share test alone passes (0.53% of the holdings, against z = 1%).
 - **BASE+NET is an assumption about the treasury.** It counts the Intents revenue the NEAR ecosystem keeps as if it worked for NEAR holders. That is the defended perimeter, stated as an assumption, not a fact.
 - **The comparable Intents history is short.** Revenue has been booked daily only since 23 Feb 2026: 263 days of data.
 - **Fees reflect pricing as well as activity.** NEAR prices its gas low by design, so a busier NEAR can still collect few base-layer fees. A chain that cuts its prices raises its multiple without becoming less useful.
@@ -100,7 +102,7 @@ Since the regime break (23 Feb 2026), Intents holders revenue equals net revenue
 | 14 Sep 2026 to 13 Oct 2026 | \$2.28M | \$8.19M |
 | 14 Oct 2026 to 12 Nov 2026 | \$1.84M | \$5.81M |
 
-**Buybacks.** The account `buybacks.multisignature.near` was read on-chain on 11 Nov 2026: it holds 2,250,000 NEAR, 12,000 NEAR have left it, and its burn or lock policy is: none published. Source: https://nearblocks.io/address/buybacks.multisignature.near
+**Buybacks.** The account `buybacks.multisignature.near` was read on-chain on 11 Nov 2026: it holds about 2,250,000 NEAR, about 12,000 NEAR have left it, and its burn or lock policy is: none published. Source: https://nearblocks.io/address/buybacks.multisignature.near
 
 **Missing days.** A day missing inside a trailing window is filled by scaling the window sum, and reported: Sui (2026-07-30, 2026-11-05).
 
@@ -113,7 +115,8 @@ Since the regime break (23 Feb 2026), Intents holders revenue equals net revenue
   - the split of Intents growth between volume and take rate;
   - NEAR's own front-end fees, separated from protocol fees.
 - **The valuation test is asymmetric.** C1 compares NEAR with Intents against peers on base-layer fees only, because the peers' application revenue is not computed. A symmetric test would be a new criterion after the freeze, so it is left out rather than added after the fact.
-- **The buyback figures are hand-read.** The holdings and outflows behind C4 were read on-chain on 11 Nov 2026 and recorded as sourced constants, not fetched by the pipeline.
+- **The buyback figures are hand-read and rounded.** The holdings and outflows behind C4 were read on-chain on 11 Nov 2026 and recorded as rounded, sourced constants, not fetched by the pipeline. The account keeps buying, so its holdings grow after that date; the outflow share only falls as they do.
+- **No on-chain usage data.** The track brief points to the NEAR BigQuery dataset (active accounts, transactions) and the NEAR Intents Explorer API (swap volume). BigQuery queries are billed to a Google Cloud account and the Explorer API needs a partner token, which would break the keyless, offline, one-command rebuild. The thesis relies instead on DefiLlama's NEAR Intents revenue series, which DefiLlama states reconciles with revenue.near.org and the on-chain buyback. Usage data would explain where that revenue comes from, the volume and take-rate split listed above; it would not change the valuation measured here.
 - **No multiple over time.** A trailing-year multiple needs two years of daily data, and CoinGecko's free API serves one; the thesis therefore rests on a single date.
 - **Ethereum's fees exclude its rollups**, which understates the activity Ethereum anchors.
 - **Intents looks more like a cross-chain exchange than a blockchain.** A second panel of cross-chain venues would test BASE+NET from another angle.

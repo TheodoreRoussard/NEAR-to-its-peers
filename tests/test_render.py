@@ -146,6 +146,12 @@ class ExplainerTest(unittest.TestCase):
         self.assertLess(self.html.index('id="key-points"'), self.html.index('id="how"'))
         self.assertLess(self.html.index('id="how"'), self.html.index('id="scorecard"'))
 
+    def test_abstract_states_the_outlook(self):
+        hero = self.html[self.html.index('id="thesis"'):self.html.index('id="key-points"')]
+        v = narrative.basics(REAL)
+        self.assertIn(render.e(narrative.outlook(REAL, v)), hero)
+        self.assertIn("burn or lock policy", hero)
+
     def test_hero_shows_both_readings(self):
         hero = self.html[self.html.index('id="thesis"'):self.html.index('id="key-points"')]
         near = REAL["near_perimeters"]

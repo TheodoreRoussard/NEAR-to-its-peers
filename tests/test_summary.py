@@ -31,6 +31,14 @@ class SummaryTest(unittest.TestCase):
         self.assertIn(summary.REPO_URL, reply)
         self.assertIn("?", reply)
 
+    def test_no_surface_claims_the_thresholds_were_set_in_advance(self):
+        # The thresholds were frozen after the numbers were visible; never claim otherwise.
+        for name, text in (("form", summary.form_text(REAL)),
+                           ("README", (ROOT / "README.md").read_text())):
+            with self.subTest(surface=name):
+                self.assertNotIn("in advance", text)
+        self.assertIn("frozen in a tagged commit", summary.form_text(REAL))
+
     def test_form_text_fits_the_form(self):
         text = summary.form_text(REAL)
         self.assertGreaterEqual(len(text), 20)

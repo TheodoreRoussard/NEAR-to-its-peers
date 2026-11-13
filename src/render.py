@@ -310,8 +310,8 @@ def capture_takeaway(metrics):
 def buyback_card(metrics):
     c4 = metrics["falsification"]["c4"]
     items = [("Account", link(c4["source"], c4["source"].rsplit("/", 1)[-1])),
-             ("Holdings", f"{c4['holdings_near']:,} NEAR"),
-             ("Outflows", f"{c4['outflows_near']:,} NEAR ("
+             ("Holdings", f"about {c4['holdings_near']:,} NEAR (rounded)"),
+             ("Outflows", f"about {c4['outflows_near']:,} NEAR ("
                           f"{e(c4['outflows_period'].replace('buyback_checked_on', fmt_day(c4['checked_on'])))})"),
              ("Outflow share", fmt_percent(c4["statistic"])),
              ("Burn or lock policy", e(c4["policy"])),
@@ -388,7 +388,7 @@ def abstract(metrics, v):
 <p class="subtitle">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
 <p class="byline">NEAR Hackathon, Investment Thesis track · Data as of <time datetime="{e(metrics["as_of"])}">{fmt_day(metrics["as_of"])}</time> · Not financial advice</p>
 <section class="abstract">
-<p><span class="runin">Abstract.</span> <span class="bottom-line">{e(n.bottom_line(metrics, v))}</span></p>
+<p><span class="runin">Abstract.</span> <span class="bottom-line">{e(n.bottom_line(metrics, v))}</span> {e(n.outlook(metrics, v))}</p>
 <div class="readings">{readings}</div>
 <p class="note">{e(v["like_for_like_short"])} A ratio below one means NEAR is valued below its typical peer.{k_text}</p>
 <p class="verdicts"><span class="runin">Verdicts.</span> {verdicts}.</p>

@@ -148,6 +148,7 @@ def values(m):
     v = n.basics(m, money=usd)
     v["like_for_like"] = n.like_for_like(m, v)
     v["bottom_line"] = n.bottom_line(m, v)
+    v["outlook"] = n.outlook(m, v, money=usd)
     v["c1_margin"] = n.c1_margin(m, v, money=usd)
     v["post_break"] = md(n.post_break(m))
     v["holders_note"] = md(n.holders_note(m))
