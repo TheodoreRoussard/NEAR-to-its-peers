@@ -33,10 +33,10 @@ Each criterion is a tripwire. If it fires, that part of the thesis is wrong. The
 
 | Criterion | Fires if | Threshold | Statistic | Verdict | If it fires |
 |---|---|---|---|---|---|
-| {{c1}} Valuation | `{{c1_formula}}` | k = {{k}} | {{c1_statistic}} | **{{c1_verdict}}** | Even counting Intents, NEAR is not valued below its peers: the valuation case fails. |
-| {{c2}} Durability | `{{c2_formula}}` | drop larger than {{x}} | {{c2_statistic}} | **{{c2_verdict}}** | Intents revenue is not durable: the captured-revenue reading loses its base. |
-| {{c3}} Capture rate | `{{c3_formula}}` | drop larger than {{y}} | {{c3_statistic}} | **{{c3_verdict}}** | NEAR's cut of Intents fees is being competed away. |
-| {{c4}} Holder accrual | `{{c4_formula}}` | z = {{z}} | {{c4_statistic}} | **{{c4_verdict}}** | Holders do not provably capture the revenue: the strict holder reading is BASE. |
+| {{c1}} Valuation | `{{c1_formula}}` | k = {{k}} | {{c1_statistic}} | **{{c1_verdict}}** | {{c1_consequence}} |
+| {{c2}} Durability | `{{c2_formula}}` | drop larger than {{x}} | {{c2_statistic}} | **{{c2_verdict}}** | {{c2_consequence}} |
+| {{c3}} Capture rate | `{{c3_formula}}` | drop larger than {{y}} | {{c3_statistic}} | **{{c3_verdict}}** | {{c3_consequence}} |
+| {{c4}} Holder accrual | `{{c4_formula}}` | z = {{z}} | {{c4_statistic}} | **{{c4_verdict}}** | {{c4_consequence}} |
 
 **How far each criterion is from firing.**
 

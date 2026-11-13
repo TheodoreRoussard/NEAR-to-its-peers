@@ -147,11 +147,6 @@ def missing_days(m):
 def values(m):
     v = n.basics(m, money=usd)
     v["like_for_like"] = n.like_for_like(m, v)
-    v["like_for_like_short"] = (
-        f"Peers are measured on base-layer fees only. The first number (BASE+NET, "
-        f"{v['base_net_multiple']}) also counts the application revenue NEAR captures through "
-        f"Intents, which no peer gets for its own applications; the second (BASE, "
-        f"{v['base_multiple']}) is the like-for-like comparison.")
     v["bottom_line"] = n.bottom_line(m, v)
     v["c1_margin"] = n.c1_margin(m, v, money=usd)
     v["post_break"] = md(n.post_break(m))
@@ -160,6 +155,8 @@ def values(m):
     v["variants"] = md(n.variants_sentence(m))
     v["margins"] = margins_list(m, v)
     v["verdict_summary"] = n.verdict_summary(m["falsification"])
+    for key, consequence in n.CONSEQUENCES.items():
+        v[f"{key}_consequence"] = consequence
     v["evidence_for"], v["evidence_against"] = evidence(m, v)
     v.update(bucket_table=bucket_table(m), perimeters_table=perimeters_table(m),
              chains_table=chains_table(m), candidates=candidates_list(m),

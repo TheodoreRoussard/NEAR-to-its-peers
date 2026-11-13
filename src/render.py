@@ -10,12 +10,71 @@ from pathlib import Path
 
 from src.fmt import (fmt_change, fmt_day, fmt_multiple, fmt_percent, fmt_ratio,  # noqa: F401
                      fmt_short_day, fmt_usd)
+from src import narrative as n
 from src.narrative import (CRITERIA, PERIMETER_NOTES, holders_note,  # noqa: F401
                            perimeter_dependence, rank_note, statistic_text)
 
 REPO = "https://github.com/TheodoreRoussard/NEAR-to-its-peers"
 CONFIG_URL = f"{REPO}/blob/main/config/panel.toml"
 THESIS_URL = f"{REPO}/blob/main/THESIS.md"
+
+
+# ---------- explanatory copy (no numbers: every number on the page comes from metrics.json) ----------
+
+KEY_POINT_TITLES = [
+    ("Like for like, how is NEAR valued?", "multiples"),
+    ("Counting the revenue Intents brings, how is NEAR valued?", "perimeters"),
+    ("Is the Intents revenue durable?", "intents"),
+    ("Do NEAR holders capture that revenue?", "buybacks"),
+    ("How robust is the comparison?", "variants"),
+]
+
+HOW_STEPS = [
+    ("Collect the data",
+     "Daily fees and revenue come from DefiLlama, daily market caps and prices from CoinGecko. "
+     "One snapshot is committed with the code and dated by the last day every series covers, "
+     "so anyone can rebuild every figure offline."),
+    ("Compute a multiple for each chain",
+     "Market cap divided by the fees paid over the trailing year. It reads like a "
+     "price-to-sales ratio: how many dollars of market value the market assigns to each dollar "
+     "of yearly fees. A lower multiple means the market pays less per dollar of activity."),
+    ("Compare NEAR with its peers",
+     "The peers are chosen by a written rule, not by hand: smart-contract base chains with a "
+     "DefiLlama fee series and a top CoinGecko rank. NEAR's multiple is divided by the median "
+     "of the peers' multiples. Below one, NEAR is valued below its typical peer."),
+    ("Decide which NEAR fees count",
+     "Most of NEAR's recent revenue comes from NEAR Intents, an application, not from "
+     "base-layer gas. NEAR is therefore measured under four perimeters, from base-layer fees "
+     "only to all Intents fees, and the thesis states which one it defends and why."),
+    ("Set tripwires in advance",
+     "Four falsification criteria (C1 to C4) say what result would prove the thesis wrong. "
+     "Their thresholds were frozen in a tagged commit, and every verdict on this page is "
+     "computed from the data, never typed."),
+    ("Rebuild it yourself",
+     "Run make judge-demo in the repository. It rebuilds the numbers, this page and THESIS.md "
+     "from the snapshot and runs the tests, with nothing to install and no network."),
+]
+
+GLOSSARY = [
+    ("Multiple", "Market cap divided by the fees of the trailing year."),
+    ("Peer median", "The middle value of the peers' multiples. NEAR and the candidate chains "
+                    "are left out of it."),
+    ("Ratio to the peer median", "NEAR's multiple divided by the peer median. Below one, NEAR "
+                                 "is valued below its typical peer; above one, above it."),
+    ("Perimeter", "A definition of which fees count as NEAR's. BASE counts base-layer fees "
+                  "only, like for like with the peers. BASE+NET adds the Intents revenue "
+                  "NEAR's ecosystem keeps: the defended reading. BASE+HOLDERS adds the Intents "
+                  "revenue booked as holders revenue. BASE+GROSS adds all Intents fees: an "
+                  "upper bound only."),
+    ("NEAR Intents", "A cross-chain swap service built on NEAR. Users pay fees, and part of "
+                     "them stays with NEAR's ecosystem."),
+    ("Regime break", "The day from which DefiLlama books Intents revenue daily. Earlier data "
+                     "is not comparable, so the window-to-window tests start there."),
+    ("Buyback", "Intents revenue used to buy NEAR on the market. It reaches holders only if "
+                "the NEAR bought is burned or locked."),
+    ("Tripwire", "A falsification criterion fixed in advance. If it fires, that part of the "
+                 "thesis is wrong."),
+]
 
 
 def e(text):
@@ -301,10 +360,11 @@ def scorecard(metrics):
         rows.append([f"<strong>{code}</strong> {e(name)}",
                      f"{e(claim)}<br><code>{e(criterion['formula'])}</code>",
                      statistic_text(key, criterion), threshold_text(key, criterion),
-                     verdict_badge(criterion["verdict"])])
+                     verdict_badge(criterion["verdict"]), e(n.margin_short(metrics, key)),
+                     e(n.CONSEQUENCES[key])])
         attrs.append(f' data-criterion="{e(key)}" data-verdict="{e(criterion["verdict"])}"')
-    return table(["Criterion", "Claim and formula", "Statistic", "Threshold", "Verdict"],
-                 rows, attrs)
+    return table(["Criterion", "Claim and formula", "Statistic", "Threshold", "Verdict",
+                  "Distance to firing", "If it fires"], rows, attrs)
 
 
 def scorecard_takeaway(metrics):
@@ -317,9 +377,78 @@ def scorecard_takeaway(metrics):
             groups.append(f"{', '.join(codes)} {verdict if len(codes) == 1 else plural}")
     text = "; ".join(groups) + "."
     if verdicts.get("c4") == "fires":
-        text += (" The data supports the valuation on captured revenue, not yet on holder value: "
-                 "a C4 that fires means the bought-back NEAR is not provably held for holders.")
+        text += (" A C4 that fires means the bought-back NEAR is not provably held for holders, "
+                 "so the strict holder reading stays BASE.")
     return text
+
+
+# ---------- the thesis, the key points and the method, before the evidence ----------
+
+def tile(label, ratio, detail):
+    return (f'<div class="tile"><p class="tile-label">{e(label)}</p>'
+            f'<p class="tile-value">{fmt_ratio(ratio)}&times;</p>'
+            f'<p class="tile-detail">{detail}</p></div>')
+
+
+def hero(metrics, v):
+    near, median = metrics["near_perimeters"], fmt_multiple(metrics["peer_median_multiple"])
+    chips = "".join(
+        f'<li><a class="chip {e(c["verdict"])}" href="#scorecard">'
+        f'<strong>{CRITERIA[key][0]}</strong> {e(CRITERIA[key][1])} · {e(c["verdict"])}</a></li>'
+        for key, c in metrics["falsification"].items())
+    k = metrics["falsification"]["c1"]["threshold"]
+    k_text = "" if k is None else f" C1 fires above k = {fmt_ratio(k)}."
+    return f"""<section class="hero" id="thesis">
+<p class="kicker">NEAR Hackathon · Investment Thesis track</p>
+<h1>NEAR Against Its Peers</h1>
+<p class="lede">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
+<div class="answer">
+<h2>The thesis</h2>
+<p class="bottom-line">{e(n.bottom_line(metrics, v))}</p>
+<div class="tiles">
+{tile("Counting Intents revenue (BASE+NET)", near["BASE+NET"]["ratio_to_peer_median"],
+      f"times the peer median: {fmt_multiple(near['BASE+NET']['multiple'])} against {median}")}
+{tile("Like for like, base-layer fees only (BASE)", near["BASE"]["ratio_to_peer_median"],
+      f"times the peer median: {fmt_multiple(near['BASE']['multiple'])} against {median}")}
+</div>
+<p class="why">{e(v["like_for_like_short"])} Below one, NEAR is valued below its typical peer.{k_text}</p>
+<ul class="chips">{chips}</ul>
+</div>
+</section>"""
+
+
+def key_points(metrics, v):
+    bodies = [
+        n.like_for_like(metrics, v),
+        " ".join(x for x in (v["c1_claim"], n.c1_margin(metrics, v), n.post_break(metrics)) if x),
+        " ".join((v["c2_claim"], n.bucket_sentence(metrics), v["c3_claim"])),
+        " ".join((v["c4_claim"], holders_note(metrics))),
+        " ".join((n.variants_sentence(metrics), rank_note(metrics))),
+    ]
+    items = "".join(f'<li><h3>{e(title)}</h3><p>{e(body)}</p>'
+                    f'<p class="more"><a href="#{anchor}">See the evidence</a></p></li>'
+                    for (title, anchor), body in zip(KEY_POINT_TITLES, bodies))
+    return (f'<section class="explainer" id="key-points">\n<h2>Key points to look at</h2>\n'
+            f'<p class="intro">Five questions a skeptical investor would ask, each answered from '
+            f'the data and linked to its evidence below.</p>\n<ol class="points">{items}</ol>\n'
+            f'</section>')
+
+
+def how_it_works():
+    steps = "".join(f"<li><h3>{e(title)}</h3><p>{e(text)}</p></li>" for title, text in HOW_STEPS)
+    terms = "".join(f"<dt>{e(term)}</dt><dd>{e(text)}</dd>" for term, text in GLOSSARY)
+    return (f'<section class="explainer" id="how">\n<h2>How the thesis is built</h2>\n'
+            f'<ol class="steps">{steps}</ol>\n<h3>Terms used on this page</h3>\n'
+            f'<dl class="glossary">{terms}</dl>\n</section>')
+
+
+def toc():
+    links = [("thesis", "The thesis"), ("key-points", "Key points"), ("how", "How it works"),
+             ("scorecard", "Scorecard"), ("multiples", "Multiples"), ("perimeters", "Perimeters"),
+             ("variants", "Panel"), ("intents", "Intents revenue"), ("capture", "Capture rate"),
+             ("buybacks", "Buybacks"), ("float", "Dilution")]
+    return ('<nav class="toc" aria-label="On this page">'
+            + "".join(f'<a href="#{a}">{e(t)}</a>' for a, t in links) + "</nav>")
 
 
 def perimeters_table(metrics):
@@ -395,11 +524,46 @@ dl.card{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:8
 dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
 a{color:var(--near)}footer{color:var(--muted);font-size:.9rem;margin-top:32px}
 .empty{color:var(--muted);font-style:italic}
+.toc{position:sticky;top:0;z-index:2;display:flex;gap:6px 14px;flex-wrap:wrap;padding:10px 0;
+background:var(--bg);border-bottom:1px solid var(--line);font-size:.85rem}
+.toc a{color:var(--muted);text-decoration:none}.toc a:hover{color:var(--near)}
+.hero{padding:28px 0 8px}.kicker{color:var(--near);font-weight:600;font-size:.85rem;
+letter-spacing:.04em;text-transform:uppercase;margin:0 0 6px}
+.answer{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--near);
+border-radius:8px;padding:20px;margin:16px 0}
+.bottom-line{font-size:1.12rem;line-height:1.6;margin:0 0 16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 12px}
+.tile{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--bg)}
+.tile-label{margin:0;color:var(--muted);font-size:.85rem;font-weight:600}
+.tile-value{margin:4px 0;font-size:2.2rem;font-weight:700;line-height:1.1}
+.tile-detail{margin:0;color:var(--muted);font-size:.85rem}
+.why{color:var(--muted);font-size:.92rem}
+.chips{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-block;padding:4px 12px;border-radius:14px;font-size:.85rem;
+text-decoration:none;color:var(--panel)}.chip.holds{background:var(--holds)}
+.chip.fires{background:var(--fires)}.chip.pending{background:var(--pending)}
+.meta-block{margin:0 0 8px}
+section.explainer{margin:28px 0}.intro{color:var(--muted)}
+ol.points,ol.steps{padding-left:0;list-style:none;counter-reset:item}
+ol.points>li,ol.steps>li{counter-increment:item;background:var(--panel);border:1px solid var(--line);
+border-radius:8px;padding:16px 16px 16px 56px;margin:12px 0;position:relative}
+ol.points>li::before,ol.steps>li::before{content:counter(item);position:absolute;left:16px;top:16px;
+width:28px;height:28px;border-radius:50%;background:var(--near);color:var(--panel);
+font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+ol.points h3,ol.steps h3{margin:2px 0 6px;font-size:1.02rem}ol.points p,ol.steps p{margin:0 0 6px}
+.more{font-size:.88rem}
+dl.glossary{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:8px 16px}
+dl.glossary dt{font-weight:600;color:var(--text)}
+@media (max-width:560px){dl.glossary{grid-template-columns:1fr}dl.glossary dd{margin-bottom:8px}}
+h2.part{font-size:1.5rem;margin:40px 0 4px}
+[id]{scroll-margin-top:52px}
+@media (max-width:560px){.toc{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}}
 """
 
 
 def render(metrics):
     as_of, days = metrics["as_of"], metrics["trailing_days"]
+    v = n.basics(metrics)
     c2_windows = window_rows(metrics)
     candidates = ", ".join(f"{e(row['name'])} {fmt_multiple(row['multiple'])}"
                            for row in metrics["add_one"])
@@ -464,17 +628,21 @@ def render(metrics):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEAR Against Its Peers</title>
-<meta name="description" content="Valuation multiples of NEAR against its peers, with falsification criteria. Not financial advice.">
+<meta name="description" content="An investment thesis on NEAR: its market cap per dollar of fees against five peer chains, which NEAR Intents revenue can count, and four tripwires that would prove it wrong. Not financial advice.">
 <style>{STYLE}</style>
 </head>
 <body>
 <main>
-<header>
-<h1>NEAR Against Its Peers</h1>
-<p class="lede">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
+{toc()}
+{hero(metrics, v)}
+<header class="meta-block">
 <p class="meta">Data as of <time datetime="{e(as_of)}">{fmt_day(as_of)}</time> · trailing {days} days · {link(THESIS_URL, 'the thesis')} · {link(REPO, 'code and data')} · Data from <a href="https://defillama.com">DefiLlama</a> · Powered by <a href="https://www.coingecko.com">CoinGecko</a> · Not financial advice.</p>
 <p class="notice">The falsification thresholds (k, x, y, z) were frozen after these numbers were visible. The rationale for each one sits next to it in {link(CONFIG_URL, 'config/panel.toml')}.</p>
 </header>
+{key_points(metrics, v)}
+{how_it_works()}
+<h2 class="part" id="evidence">The evidence</h2>
+<p class="intro">Each section shows one piece of evidence: a sentence on what it says, the chart or table, the method and the source.</p>
 {chr(10).join(sections)}
 <footer>
 <p>Fees and revenue: <a href="https://defillama.com">DefiLlama</a>. Market caps and prices: Powered by <a href="https://www.coingecko.com">CoinGecko</a>. Buyback account: nearblocks. The data belongs to its providers and is not covered by the code license (see <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/data/README.md">data/README.md</a>). Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>

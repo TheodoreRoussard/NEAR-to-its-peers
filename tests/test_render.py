@@ -5,7 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src import build, render
+import copy
+
+from src import build, narrative, render
 from tests.test_build import CAPS, CONFIG, write_snapshot
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -108,6 +110,71 @@ class RenderTest(unittest.TestCase):
         out = Path(tempfile.mkdtemp()) / "docs" / "index.html"
         render.write(REAL, out)
         self.assertEqual(out.read_text(), self.html)
+
+
+class ExplainerTest(unittest.TestCase):
+    """The page states the 'what' and the 'how' of the thesis before the evidence."""
+
+    def setUp(self):
+        self.html = render.render(REAL)
+
+    def test_the_thesis_comes_first_and_matches_thesis_md(self):
+        v = narrative.basics(REAL)
+        bottom = render.e(narrative.bottom_line(REAL, v))
+        self.assertIn(bottom, self.html)
+        self.assertLess(self.html.index('id="thesis"'), self.html.index('id="key-points"'))
+        self.assertLess(self.html.index('id="key-points"'), self.html.index('id="how"'))
+        self.assertLess(self.html.index('id="how"'), self.html.index('id="scorecard"'))
+
+    def test_hero_shows_both_readings(self):
+        hero = self.html[self.html.index('id="thesis"'):self.html.index('id="key-points"')]
+        near = REAL["near_perimeters"]
+        self.assertIn(render.fmt_ratio(near["BASE+NET"]["ratio_to_peer_median"]), hero)
+        self.assertIn(render.fmt_ratio(near["BASE"]["ratio_to_peer_median"]), hero)
+        for key, criterion in REAL["falsification"].items():
+            self.assertIn(f'class="chip {criterion["verdict"]}"', hero)
+
+    def test_key_points_link_to_their_evidence(self):
+        points = self.html[self.html.index('id="key-points"'):self.html.index('id="how"')]
+        self.assertGreaterEqual(points.count("<li"), 5)
+        self.assertGreaterEqual(points.count('href="#'), 5)
+
+    def test_every_internal_link_resolves(self):
+        ids = set(re.findall(r'id="([^"]+)"', self.html))
+        for target in re.findall(r'href="#([^"]+)"', self.html):
+            with self.subTest(target=target):
+                self.assertIn(target, ids)
+
+    def test_how_it_works_explains_the_method_and_terms(self):
+        how = self.html[self.html.index('id="how"'):self.html.index('id="scorecard"')]
+        for term in ("Multiple", "Peer median", "Perimeter", "Tripwire", "Regime break"):
+            with self.subTest(term=term):
+                self.assertIn(term, how)
+        self.assertIn("make judge-demo", how)
+
+    def test_explanatory_copy_has_no_hand_typed_numbers(self):
+        for name in ("HOW_STEPS", "GLOSSARY", "KEY_POINT_TITLES"):
+            text = repr(getattr(render, name))
+            with self.subTest(constant=name):
+                self.assertIsNone(re.search(r"\d", text.replace("C1", "").replace("C2", "")
+                                            .replace("C3", "").replace("C4", "")))
+        for consequence in narrative.CONSEQUENCES.values():
+            self.assertIsNone(re.search(r"\d", consequence))
+
+    def test_scorecard_says_what_happens_if_each_criterion_fires(self):
+        card = self.html[self.html.index('id="scorecard"'):self.html.index('id="multiples"')]
+        self.assertIn("If it fires", card)
+        for consequence in narrative.CONSEQUENCES.values():
+            self.assertIn(render.e(consequence), card)
+
+    def test_hero_follows_a_flipped_verdict(self):
+        m = copy.deepcopy(REAL)
+        m["falsification"]["c4"].update(verdict="holds", policy="burn")
+        html = render.render(m)
+        hero = html[html.index('id="thesis"'):html.index('id="key-points"')]
+        self.assertNotIn("not yet provably", hero)
+        self.assertIn('class="chip holds"', hero)
+        self.assertNotIn('class="chip fires"', hero)
 
 
 class FormatTest(unittest.TestCase):

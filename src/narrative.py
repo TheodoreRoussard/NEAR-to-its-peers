@@ -26,6 +26,34 @@ CRITERIA = {
     "c4": ("C4", "Holder accrual", "Bought-back NEAR provably stays out of circulation."),
 }
 
+CONSEQUENCES = {
+    "c1": "Even counting Intents, NEAR is not valued below its peers: the valuation case fails.",
+    "c2": "Intents revenue is not durable: the captured-revenue reading loses its base.",
+    "c3": "NEAR's cut of Intents fees is being competed away.",
+    "c4": "Holders do not provably capture the revenue: the strict holder reading is BASE.",
+}
+
+
+def margin_short(m, key, money=fmt_usd):
+    """One line on how far a criterion is from firing, for the scorecard."""
+    mg = m.get("margins", {}).get(key, {})
+    if key == "c1":
+        share, breakeven = mg.get("intents_net_drop_to_fire"), mg.get("intents_net_breakeven")
+        if share is not None:
+            return f"Intents net revenue would have to fall {share * 100:.0f}%"
+        if breakeven is not None and breakeven <= 0:
+            return "No fall in Intents revenue could make it fire"
+        return "n/a"
+    if key == "c2":
+        level = mg.get("last_net_fires_below")
+        return "n/a" if level is None else f"Last-window net revenue below {money(level)}"
+    if key == "c3":
+        level = mg.get("last_share_fires_below")
+        return "n/a" if level is None else f"Last-window share below {fmt_percent(level)}"
+    if not mg:
+        return "n/a"
+    return f"Policy test {mg['policy_test']}; outflow-share test {mg['outflow_test']}"
+
 
 def statistic_text(key, criterion):
     s = criterion["statistic"]
@@ -304,4 +332,9 @@ def basics(m, money=fmt_usd):
                                  fmt_percent(prior["net_over_gross"]),
                                  fmt_percent(last["net_over_gross"]), "capture")
     v["c4_claim"] = c4_claim(m, v)
+    v["like_for_like_short"] = (
+        f"Peers are measured on base-layer fees only. The first number (BASE+NET, "
+        f"{v['base_net_multiple']}) also counts the application revenue NEAR captures through "
+        f"Intents, which no peer gets for its own applications; the second (BASE, "
+        f"{v['base_multiple']}) is the like-for-like comparison.")
     return v
