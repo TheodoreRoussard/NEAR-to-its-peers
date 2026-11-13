@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-11-10",
-  "fetched_at": "2026-11-11T16:27:30Z",
+  "as_of": "2026-11-12",
+  "fetched_at": "2026-11-13T10:00:39Z",
   "sources": {
     "defillama_near_dailyFees.json": "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
     "defillama_solana_dailyFees.json": "https://api.llama.fi/summary/fees/solana?dataType=dailyFees",
