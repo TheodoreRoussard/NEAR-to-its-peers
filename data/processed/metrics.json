@@ -1,20 +1,20 @@
 {
-  "as_of": "2026-11-10",
+  "as_of": "2026-11-12",
   "trailing_days": 365,
   "chains": {
     "NEAR": {
-      "market_cap": 4752056551.498374,
-      "fees_trailing": 1164678.0,
-      "multiple": 4080.146230544729,
+      "market_cap": 4702052222.15716,
+      "fees_trailing": 1154830.0,
+      "multiple": 4071.6401740144956,
       "missing_days": [],
       "float_growth": {
-        "start": "2025-11-12",
-        "end": "2026-11-10",
+        "start": "2025-11-14",
+        "end": "2026-11-12",
         "days": 363,
-        "growth": 0.025318352899319052,
-        "annualized": 0.0254596088612149
+        "growth": 0.02285796789135852,
+        "annualized": 0.022985343552735182
       },
-      "market_cap_rank": 20,
+      "market_cap_rank": 21,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near",
@@ -22,16 +22,16 @@
       }
     },
     "Solana": {
-      "market_cap": 51195827113.39133,
-      "fees_trailing": 231392824.0,
-      "multiple": 221.25071222343234,
+      "market_cap": 49234592437.13267,
+      "fees_trailing": 230669950.0,
+      "multiple": 213.4417267491178,
       "missing_days": [],
       "float_growth": {
-        "start": "2025-11-12",
-        "end": "2026-11-10",
+        "start": "2025-11-14",
+        "end": "2026-11-12",
         "days": 363,
-        "growth": 0.06884695232240046,
-        "annualized": 0.0692391141317279
+        "growth": 0.06545278151327638,
+        "annualized": 0.06582502036693239
       },
       "market_cap_rank": 7,
       "sources": {
@@ -41,16 +41,16 @@
       }
     },
     "Ethereum": {
-      "market_cap": 260555474131.4111,
-      "fees_trailing": 175978356.0,
-      "multiple": 1480.6109117840099,
+      "market_cap": 251186491278.64087,
+      "fees_trailing": 175207467.0,
+      "multiple": 1433.6517477228347,
       "missing_days": [],
       "float_growth": {
-        "start": "2025-11-12",
-        "end": "2026-11-10",
+        "start": "2025-11-14",
+        "end": "2026-11-12",
         "days": 363,
-        "growth": 0.008167525105046147,
-        "annualized": 0.008212709527479545
+        "growth": 0.008173671861914533,
+        "annualized": 0.008218890427886372
       },
       "market_cap_rank": 2,
       "sources": {
@@ -60,18 +60,18 @@
       }
     },
     "Avalanche": {
-      "market_cap": 3853818812.9286513,
-      "fees_trailing": 2671229.0,
-      "multiple": 1442.7137519578635,
+      "market_cap": 3795487426.6079845,
+      "fees_trailing": 2664627.0,
+      "multiple": 1424.3972708405283,
       "missing_days": [],
       "float_growth": {
-        "start": "2025-11-12",
-        "end": "2026-11-10",
+        "start": "2025-11-14",
+        "end": "2026-11-12",
         "days": 363,
-        "growth": 0.04348603690663633,
-        "annualized": 0.04373079364786392
+        "growth": 0.0381029534612749,
+        "annualized": 0.0383168588178322
       },
-      "market_cap_rank": 26,
+      "market_cap_rank": 25,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/avalanche?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/avalanche.ts",
@@ -79,19 +79,19 @@
       }
     },
     "Sui": {
-      "market_cap": 3495381542.234304,
-      "fees_trailing": 2593363.2093663914,
-      "multiple": 1347.8179722802088,
+      "market_cap": 3401237001.297557,
+      "fees_trailing": 2565699.628099174,
+      "multiple": 1325.656738632885,
       "missing_days": [
         "2026-07-30",
         "2026-11-05"
       ],
       "float_growth": {
-        "start": "2025-11-12",
-        "end": "2026-11-10",
+        "start": "2025-11-14",
+        "end": "2026-11-12",
         "days": 363,
-        "growth": 0.12494497426189222,
-        "annualized": 0.12567493225340076
+        "growth": 0.12209842498041334,
+        "annualized": 0.12281086223149806
       },
       "market_cap_rank": 28,
       "sources": {
@@ -101,18 +101,18 @@
       }
     },
     "Aptos": {
-      "market_cap": 519052425.69434065,
-      "fees_trailing": 1221943.0,
-      "multiple": 424.77629946269235,
+      "market_cap": 497656897.66838384,
+      "fees_trailing": 1224916.0,
+      "multiple": 406.27838779833377,
       "missing_days": [],
       "float_growth": {
-        "start": "2025-11-12",
-        "end": "2026-11-10",
+        "start": "2025-11-14",
+        "end": "2026-11-12",
         "days": 363,
-        "growth": 0.2207889885474612,
-        "annualized": 0.22213156749115903
+        "growth": 0.20663647167416466,
+        "annualized": 0.2078858818747109
       },
-      "market_cap_rank": 102,
+      "market_cap_rank": 104,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/aptos?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/aptos.ts",
@@ -120,37 +120,37 @@
       }
     }
   },
-  "peer_median_multiple": 1347.8179722802088,
+  "peer_median_multiple": 1325.656738632885,
   "add_one": [
     {
       "name": "Tron",
-      "market_cap": 30169779106.395023,
-      "fees_trailing": 333292629.0,
-      "multiple": 90.52039103569561,
+      "market_cap": 30096690467.632164,
+      "fees_trailing": 332580928.0,
+      "multiple": 90.49433666753183,
       "missing_days": [],
-      "near_base_net_ratio_to_median_with_candidate": 0.5095225681432027
+      "near_base_net_ratio_to_median_with_candidate": 0.5097850296729277
     },
     {
       "name": "Cardano",
-      "market_cap": 6661088180.288562,
-      "fees_trailing": 940765.0,
-      "multiple": 7080.501698392863,
+      "market_cap": 6549771736.479604,
+      "fees_trailing": 933573.0,
+      "multiple": 7015.811014756858,
       "missing_days": [],
-      "near_base_net_ratio_to_median_with_candidate": 0.3236575946331436
+      "near_base_net_ratio_to_median_with_candidate": 0.3210535490495284
     }
   ],
   "margins": {
     "c1": {
       "held_fixed": "NEAR market cap and the peer median",
-      "intents_net_breakeven": 2361062.603873199,
-      "intents_net_drop_to_fire": 0.7477040079849513
+      "intents_net_breakeven": 2392130.6008311496,
+      "intents_net_drop_to_fire": 0.7481006607009324
     },
     "c2": {
-      "last_net_fires_below": 872102.5
+      "last_net_fires_below": 868804.0
     },
     "c3": {
-      "last_share_fires_below": 0.14691400610991606,
-      "points_change": 0.07481279896110343
+      "last_share_fires_below": 0.14669639153527894,
+      "points_change": 0.07965018700482288
     },
     "c4": {
       "policy_test": "fires",
@@ -158,9 +158,9 @@
     }
   },
   "post_break_reading": {
-    "intents_net_annualized": 11203519.840038314,
-    "multiple": 384.21576150043643,
-    "ratio_to_peer_median": 0.2850650231725495,
+    "intents_net_annualized": 11309941.419201521,
+    "multiple": 377.22731240091747,
+    "ratio_to_peer_median": 0.2845588163267228,
     "c1_verdict": "holds"
   },
   "panel": {
@@ -186,50 +186,50 @@
   "panel_variants": [
     {
       "label": "Panel",
-      "peer_median": 1347.8179722802088,
-      "near_base_net_ratio": 0.3350514699275002,
+      "peer_median": 1325.656738632885,
+      "near_base_net_ratio": 0.3330102635505219,
       "c1_verdict": "holds"
     },
     {
       "label": "+ Tron",
-      "peer_median": 886.2971358714506,
-      "near_base_net_ratio": 0.5095225681432027,
+      "peer_median": 865.9675632156094,
+      "near_base_net_ratio": 0.5097850296729277,
       "c1_verdict": "holds"
     },
     {
       "label": "+ Cardano",
-      "peer_median": 1395.2658621190362,
-      "near_base_net_ratio": 0.3236575946331436,
+      "peer_median": 1375.0270047367067,
+      "near_base_net_ratio": 0.3210535490495284,
       "c1_verdict": "holds"
     },
     {
       "label": "- Solana",
-      "peer_median": 1395.2658621190362,
-      "near_base_net_ratio": 0.3236575946331436,
+      "peer_median": 1375.0270047367067,
+      "near_base_net_ratio": 0.3210535490495284,
       "c1_verdict": "holds"
     },
     {
       "label": "- Ethereum",
-      "peer_median": 886.2971358714506,
-      "near_base_net_ratio": 0.5095225681432027,
+      "peer_median": 865.9675632156094,
+      "near_base_net_ratio": 0.5097850296729277,
       "c1_verdict": "holds"
     },
     {
       "label": "- Avalanche",
-      "peer_median": 886.2971358714506,
-      "near_base_net_ratio": 0.5095225681432027,
+      "peer_median": 865.9675632156094,
+      "near_base_net_ratio": 0.5097850296729277,
       "c1_verdict": "holds"
     },
     {
       "label": "- Sui",
-      "peer_median": 933.7450257102779,
-      "near_base_net_ratio": 0.48363137727419103,
+      "peer_median": 915.3378293194311,
+      "near_base_net_ratio": 0.4822889273984155,
       "c1_verdict": "holds"
     },
     {
       "label": "- Aptos",
-      "peer_median": 1395.2658621190362,
-      "near_base_net_ratio": 0.3236575946331436,
+      "peer_median": 1375.0270047367067,
+      "near_base_net_ratio": 0.3210535490495284,
       "c1_verdict": "holds"
     }
   ],
@@ -237,55 +237,55 @@
   "near_perimeters": {
     "BASE": {
       "basis": "trailing_365",
-      "denominator": 1164678.0,
-      "multiple": 4080.146230544729,
-      "ratio_to_peer_median": 3.0272234934232456
+      "denominator": 1154830.0,
+      "multiple": 4071.6401740144956,
+      "ratio_to_peer_median": 3.0714136286995917
     },
     "BASE+NET": {
       "basis": "trailing_365",
-      "denominator": 10522982.05,
-      "multiple": 451.5883928071866,
-      "ratio_to_peer_median": 0.3350514699275002
+      "denominator": 10651205.05,
+      "multiple": 441.4572999096623,
+      "ratio_to_peer_median": 0.3330102635505219
     },
     "BASE+HOLDERS": {
       "basis": "trailing_365",
-      "denominator": 9175962.05,
-      "multiple": 517.881016247051,
-      "ratio_to_peer_median": 0.3842366156988627,
-      "holders_annualized_since_regime_break": 11203519.840038314,
-      "holders_days": 261
+      "denominator": 9304185.05,
+      "multiple": 505.36959410079226,
+      "ratio_to_peer_median": 0.3812220610155587,
+      "holders_annualized_since_regime_break": 11309941.419201521,
+      "holders_days": 263
     },
     "BASE+GROSS": {
       "basis": "trailing_365",
-      "denominator": 55190943.0,
-      "multiple": 86.1021083024143,
-      "ratio_to_peer_median": 0.06388259399505457
+      "denominator": 55037593.0,
+      "multiple": 85.43346403533963,
+      "ratio_to_peer_median": 0.06444614321762127
     }
   },
   "intents": {
     "regime_break": "2026-02-23",
     "windows": {
       "last_90d": {
-        "start": "2026-08-13",
-        "end": "2026-11-10",
-        "net": 5077609.0,
-        "gross": 18757458.0,
-        "holders": 5077609.0,
-        "net_over_gross": 0.2706981404409915
+        "start": "2026-08-15",
+        "end": "2026-11-12",
+        "net": 5190863.0,
+        "gross": 18859038.0,
+        "holders": 5190863.0,
+        "net_over_gross": 0.27524537571852814
       },
       "prior_90d": {
-        "start": "2026-05-15",
-        "end": "2026-08-12",
-        "net": 1744205.0,
-        "gross": 8904214.0,
-        "holders": 1744205.0,
-        "net_over_gross": 0.19588534147988806
+        "start": "2026-05-17",
+        "end": "2026-08-14",
+        "net": 1737608.0,
+        "gross": 8883695.0,
+        "holders": 1737608.0,
+        "net_over_gross": 0.19559518871370526
       }
     },
     "run_rate_90d": {
-      "net": 20592525.388888888,
-      "gross": 76071913.0,
-      "holders": 20592525.388888888
+      "net": 21051833.277777776,
+      "gross": 76483876.33333333,
+      "holders": 21051833.277777776
     },
     "missing_days": {
       "net": [],
@@ -298,52 +298,52 @@
     },
     "buckets_30d": [
       {
-        "start": "2026-03-16",
-        "end": "2026-04-14",
-        "net": 515710.0,
-        "gross": 3541155.0
+        "start": "2026-03-18",
+        "end": "2026-04-16",
+        "net": 502881.0,
+        "gross": 3429644.0
       },
       {
-        "start": "2026-04-15",
-        "end": "2026-05-14",
-        "net": 305129.05,
-        "gross": 2956457.0
+        "start": "2026-04-17",
+        "end": "2026-05-16",
+        "net": 322881.05,
+        "gross": 2991409.0
       },
       {
-        "start": "2026-05-15",
-        "end": "2026-06-13",
-        "net": 855247.0,
-        "gross": 3065916.0
+        "start": "2026-05-17",
+        "end": "2026-06-15",
+        "net": 868127.0,
+        "gross": 3102708.0
       },
       {
-        "start": "2026-06-14",
-        "end": "2026-07-13",
-        "net": 400576.0,
-        "gross": 3097668.0
+        "start": "2026-06-16",
+        "end": "2026-07-15",
+        "net": 410057.0,
+        "gross": 3199043.0
       },
       {
-        "start": "2026-07-14",
-        "end": "2026-08-12",
-        "net": 488382.0,
-        "gross": 2740630.0
+        "start": "2026-07-16",
+        "end": "2026-08-14",
+        "net": 459424.0,
+        "gross": 2581944.0
       },
       {
-        "start": "2026-08-13",
-        "end": "2026-09-11",
-        "net": 1036846.0,
-        "gross": 4811657.0
+        "start": "2026-08-15",
+        "end": "2026-09-13",
+        "net": 1070633.0,
+        "gross": 4861141.0
       },
       {
-        "start": "2026-09-12",
-        "end": "2026-10-11",
-        "net": 2223195.0,
-        "gross": 7985015.0
+        "start": "2026-09-14",
+        "end": "2026-10-13",
+        "net": 2283870.0,
+        "gross": 8190505.0
       },
       {
-        "start": "2026-10-12",
-        "end": "2026-11-10",
-        "net": 1817568.0,
-        "gross": 5960786.0
+        "start": "2026-10-14",
+        "end": "2026-11-12",
+        "net": 1836360.0,
+        "gross": 5807392.0
       }
     ],
     "sources": {
@@ -356,19 +356,19 @@
   "falsification": {
     "c1": {
       "formula": "NEAR BASE+NET multiple / median(peer multiples) > k (trailing 365 days)",
-      "statistic": 0.3350514699275002,
+      "statistic": 0.3330102635505219,
       "threshold": 1.0,
       "verdict": "holds"
     },
     "c2": {
       "formula": "Intents net revenue, last 90 days < (1 - x) * prior 90 days (data after regime_break)",
-      "statistic": 1.9111308590446652,
+      "statistic": 1.9873613611355379,
       "threshold": 0.5,
       "verdict": "holds"
     },
     "c3": {
       "formula": "net / gross, last 90 days < (1 - y) * prior 90 days (data after regime_break)",
-      "statistic": 0.3819213750038801,
+      "statistic": 0.4072195616294412,
       "threshold": 0.25,
       "verdict": "holds"
     },
