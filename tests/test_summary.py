@@ -39,6 +39,14 @@ class SummaryTest(unittest.TestCase):
                 self.assertNotIn("in advance", text)
         self.assertIn("frozen in a tagged commit", summary.form_text(REAL))
 
+    def test_readme_says_to_clone_before_running_anything(self):
+        readme = (ROOT / "README.md").read_text()
+        try_it = readme[readme.index("## Try it"):readme.index("## How it works")]
+        clone = try_it.index(f"git clone {summary.REPO_URL}.git")
+        self.assertLess(clone, try_it.index("make judge-demo"))
+        self.assertIn("cd NEAR-to-its-peers", try_it)
+        self.assertIn("published page does not change", try_it)
+
     def test_form_text_fits_the_form(self):
         text = summary.form_text(REAL)
         self.assertGreaterEqual(len(text), 20)
