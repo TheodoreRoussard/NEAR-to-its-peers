@@ -1,4 +1,4 @@
-"""Offline build: data/raw/ -> data/processed/metrics.json and docs/index.html.
+"""Offline build: data/raw/ -> data/processed/metrics.json, docs/index.html and THESIS.md.
 
 Never reads the wall clock: the date comes from data/raw/MANIFEST.json ("as_of").
 """
@@ -11,6 +11,7 @@ from statistics import median
 
 from src import metrics as m
 from src import render
+from src import thesis
 
 BUCKET_DAYS = 30  # Intents revenue chart: whole 30-day buckets back from as_of
 RUN_RATE_DAYS = 90  # fixed: the output keys (last_90d, prior_90d, run_rate_90d) are named 90d
@@ -195,6 +196,11 @@ def compute(raw_dir, config, as_of):
 
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
             "peer_median_multiple": peer_median, "add_one": add_one,
+            "panel": {"rule": config.get("panel_rule", {}).get("description"),
+                      "fee_definition": config.get("panel_rule", {}).get("fee_definition"),
+                      "reasons": {c["name"]: c.get("reason") for c in config["chains"]},
+                      "candidate_reasons": {c["name"]: c.get("reason")
+                                            for c in config.get("candidates", [])}},
             "panel_variants": variants,
             "c1_verdict_same_in_all_variants": len({v["c1_verdict"] for v in variants}) == 1,
             "near_perimeters": near_perimeters,
@@ -234,6 +240,7 @@ def main() -> int:
         print(f"error: {e}", file=sys.stderr)
         return 1
     render.write(result, ROOT / "docs" / "index.html")
+    thesis.write(result, (ROOT / "THESIS.template.md").read_text(), ROOT / "THESIS.md")
     return 0
 
 
