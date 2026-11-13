@@ -132,7 +132,7 @@ class ExplainerTest(unittest.TestCase):
         self.assertIn(render.fmt_ratio(near["BASE+NET"]["ratio_to_peer_median"]), hero)
         self.assertIn(render.fmt_ratio(near["BASE"]["ratio_to_peer_median"]), hero)
         for key, criterion in REAL["falsification"].items():
-            self.assertIn(f'class="chip {criterion["verdict"]}"', hero)
+            self.assertIn(f'class="verdict {criterion["verdict"]}"', hero)
 
     def test_key_points_link_to_their_evidence(self):
         points = self.html[self.html.index('id="key-points"'):self.html.index('id="how"')]
@@ -173,8 +173,8 @@ class ExplainerTest(unittest.TestCase):
         html = render.render(m)
         hero = html[html.index('id="thesis"'):html.index('id="key-points"')]
         self.assertNotIn("not yet provably", hero)
-        self.assertIn('class="chip holds"', hero)
-        self.assertNotIn('class="chip fires"', hero)
+        self.assertIn('class="verdict holds"', hero)
+        self.assertNotIn('class="verdict fires"', hero)
 
 
 class FormatTest(unittest.TestCase):
