@@ -14,6 +14,7 @@
         "growth": 0.025318352899319052,
         "annualized": 0.0254596088612149
       },
+      "market_cap_rank": 20,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/near?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near",
@@ -32,6 +33,7 @@
         "growth": 0.06884695232240046,
         "annualized": 0.0692391141317279
       },
+      "market_cap_rank": 7,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/solana?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/solana.ts",
@@ -50,6 +52,7 @@
         "growth": 0.008167525105046147,
         "annualized": 0.008212709527479545
       },
+      "market_cap_rank": 2,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/ethereum?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/ethereum",
@@ -68,6 +71,7 @@
         "growth": 0.04348603690663633,
         "annualized": 0.04373079364786392
       },
+      "market_cap_rank": 26,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/avalanche?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/avalanche.ts",
@@ -89,6 +93,7 @@
         "growth": 0.12494497426189222,
         "annualized": 0.12567493225340076
       },
+      "market_cap_rank": 28,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/sui?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/sui.ts",
@@ -107,6 +112,7 @@
         "growth": 0.2207889885474612,
         "annualized": 0.22213156749115903
       },
+      "market_cap_rank": 102,
       "sources": {
         "fees": "https://api.llama.fi/summary/fees/aptos?dataType=dailyFees",
         "fees_methodology": "https://github.com/DefiLlama/dimension-adapters/blob/master/fees/aptos.ts",
@@ -133,8 +139,36 @@
       "near_base_net_ratio_to_median_with_candidate": 0.3236575946331436
     }
   ],
+  "margins": {
+    "c1": {
+      "held_fixed": "NEAR market cap and the peer median",
+      "intents_net_breakeven": 2361062.603873199,
+      "intents_net_drop_to_fire": 0.7477040079849513
+    },
+    "c2": {
+      "last_net_fires_below": 872102.5
+    },
+    "c3": {
+      "last_share_fires_below": 0.14691400610991606,
+      "points_change": 0.07481279896110343
+    },
+    "c4": {
+      "policy_test": "fires",
+      "outflow_test": "holds"
+    }
+  },
+  "post_break_reading": {
+    "intents_net_annualized": 11203519.840038314,
+    "multiple": 384.21576150043643,
+    "ratio_to_peer_median": 0.2850650231725495,
+    "c1_verdict": "holds"
+  },
   "panel": {
     "rule": "Smart-contract L1s with a DefiLlama chain-fee series and CoinGecko market-cap rank <= 30; excluding BTC, stablecoins, L2s, exchange tokens; fees counted as base-layer fees only.",
+    "max_rank": 30,
+    "rank_rule_failures": [
+      "Aptos"
+    ],
     "fee_definition": "base-layer fees (gas, burn and validator revenue)",
     "reasons": {
       "NEAR": "Subject of the thesis.",
@@ -257,6 +291,10 @@
       "net": [],
       "gross": [],
       "holders": []
+    },
+    "holders_vs_net": {
+      "net_before_break_in_trailing": 1347020.0,
+      "holders_equals_net_since_break": true
     },
     "buckets_30d": [
       {
