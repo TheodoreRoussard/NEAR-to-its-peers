@@ -61,14 +61,34 @@ class RenderTest(unittest.TestCase):
         self.assertIn('<a href="https://defillama.com">DefiLlama</a>', self.html)
         self.assertIn(REAL["as_of"], self.html)
 
-    def test_every_chart_has_a_source_a_method_and_a_takeaway(self):
+    def test_every_chart_has_a_method_and_a_takeaway(self):
         sections = chart_sections(self.html)
         self.assertGreaterEqual(len(sections), 6)
         for section in sections:
             with self.subTest(section=section[:80]):
-                self.assertRegex(section, r'class="source".*?href="https://')
                 self.assertIn('class="method"', section)
                 self.assertIn('class="takeaway"', section)
+                self.assertNotIn('class="source"', section)
+
+    def test_sources_sit_in_one_block_after_the_charts(self):
+        self.assertEqual(self.html.count('id="sources"'), 1)
+        last_chart = self.html.rindex('<section class="chart"')
+        block = self.html[self.html.index('id="sources"'):self.html.index("</footer>")]
+        self.assertGreater(self.html.index('id="sources"'), last_chart)
+        for chain in REAL["chains"].values():
+            self.assertIn(chain["sources"]["fees_methodology"], block)
+            self.assertIn(render.e(chain["sources"]["market_cap"]), block)
+        self.assertIn(REAL["intents"]["sources"]["methodology"], block)
+        self.assertIn(REAL["falsification"]["c4"]["source"], block)
+        self.assertIn("config/panel.toml", block)
+        for anchor in ("multiples", "perimeters", "variants", "intents", "buybacks", "float",
+                       "scorecard"):
+            self.assertIn(f'href="#{anchor}"', block)
+
+    def test_the_masthead_does_not_name_the_author(self):
+        head = self.html[self.html.index('id="thesis"'):self.html.index('class="abstract"')]
+        self.assertNotIn("Roussard", head)
+        self.assertNotIn("Théo", head)
 
     def test_numbers_come_from_metrics(self):
         near = REAL["near_perimeters"]
@@ -145,15 +165,18 @@ class ExplainerTest(unittest.TestCase):
             with self.subTest(target=target):
                 self.assertIn(target, ids)
 
-    def test_how_it_works_explains_the_method_and_terms(self):
-        how = self.html[self.html.index('id="how"'):self.html.index('id="scorecard"')]
-        for term in ("Multiple", "Peer median", "Perimeter", "Tripwire", "Regime break"):
+    def test_method_is_one_short_paragraph_without_a_glossary(self):
+        how = self.html[self.html.index('id="how"'):self.html.index('id="evidence"')]
+        self.assertEqual(how.count("<p"), 1)
+        self.assertNotIn("<dl", how)
+        self.assertNotIn("Terms", how)
+        self.assertLess(len(re.sub(r"<[^>]+>", "", how).split()), 130)
+        for term in ("multiple", "median", "perimeter", "make judge-demo"):
             with self.subTest(term=term):
                 self.assertIn(term, how)
-        self.assertIn("make judge-demo", how)
 
     def test_explanatory_copy_has_no_hand_typed_numbers(self):
-        for name in ("HOW_STEPS", "GLOSSARY", "KEY_POINT_TITLES"):
+        for name in ("METHOD", "KEY_POINT_TITLES"):
             text = repr(getattr(render, name))
             with self.subTest(constant=name):
                 self.assertIsNone(re.search(r"\d", text.replace("C1", "").replace("C2", "")

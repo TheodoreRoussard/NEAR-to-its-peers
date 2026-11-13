@@ -29,52 +29,16 @@ KEY_POINT_TITLES = [
     ("How robust is the comparison?", "variants"),
 ]
 
-HOW_STEPS = [
-    ("Collect the data",
-     "Daily fees and revenue come from DefiLlama, daily market caps and prices from CoinGecko. "
-     "One snapshot is committed with the code and dated by the last day every series covers, "
-     "so anyone can rebuild every figure offline."),
-    ("Compute a multiple for each chain",
-     "Market cap divided by the fees paid over the trailing year. It reads like a "
-     "price-to-sales ratio: how many dollars of market value the market assigns to each dollar "
-     "of yearly fees. A lower multiple means the market pays less per dollar of activity."),
-    ("Compare NEAR with its peers",
-     "The peers are chosen by a written rule, not by hand: smart-contract base chains with a "
-     "DefiLlama fee series and a top CoinGecko rank. NEAR's multiple is divided by the median "
-     "of the peers' multiples. Below one, NEAR is valued below its typical peer."),
-    ("Decide which NEAR fees count",
-     "Most of NEAR's recent revenue comes from NEAR Intents, an application, not from "
-     "base-layer gas. NEAR is therefore measured under four perimeters, from base-layer fees "
-     "only to all Intents fees, and the thesis states which one it defends and why."),
-    ("Set tripwires in advance",
-     "Four falsification criteria (C1 to C4) say what result would prove the thesis wrong. "
-     "Their thresholds were frozen in a tagged commit, and every verdict on this page is "
-     "computed from the data, never typed."),
-    ("Rebuild it yourself",
-     "Run make judge-demo in the repository. It rebuilds the numbers, this page and THESIS.md "
-     "from the snapshot and runs the tests, with nothing to install and no network."),
-]
-
-GLOSSARY = [
-    ("Multiple", "Market cap divided by the fees of the trailing year."),
-    ("Peer median", "The middle value of the peers' multiples. NEAR and the candidate chains "
-                    "are left out of it."),
-    ("Ratio to the peer median", "NEAR's multiple divided by the peer median. Below one, NEAR "
-                                 "is valued below its typical peer; above one, above it."),
-    ("Perimeter", "A definition of which fees count as NEAR's. BASE counts base-layer fees "
-                  "only, like for like with the peers. BASE+NET adds the Intents revenue "
-                  "NEAR's ecosystem keeps: the defended reading. BASE+HOLDERS adds the Intents "
-                  "revenue booked as holders revenue. BASE+GROSS adds all Intents fees: an "
-                  "upper bound only."),
-    ("NEAR Intents", "A cross-chain swap service built on NEAR. Users pay fees, and part of "
-                     "them stays with NEAR's ecosystem."),
-    ("Regime break", "The day from which DefiLlama books Intents revenue daily. Earlier data "
-                     "is not comparable, so the window-to-window tests start there."),
-    ("Buyback", "Intents revenue used to buy NEAR on the market. It reaches holders only if "
-                "the NEAR bought is burned or locked."),
-    ("Tripwire", "A falsification criterion fixed in advance. If it fires, that part of the "
-                 "thesis is wrong."),
-]
+METHOD = (
+    "Daily fees and revenue come from DefiLlama and market caps from CoinGecko, in one "
+    "snapshot committed with the code. Each chain's multiple is its market cap divided by its "
+    "trailing-year fees, read like a price-to-sales ratio; NEAR's multiple is then divided by "
+    "the median of peers chosen by a written rule, so below one NEAR is valued below its "
+    "typical peer. Most of NEAR's recent revenue comes from NEAR Intents, an application, so "
+    "NEAR is measured under four perimeters, from base-layer fees only (BASE) to all Intents "
+    "fees (BASE+GROSS); the thesis defends BASE+NET. Four criteria, C1 to C4, with thresholds "
+    "frozen in a tagged commit, state what would prove it wrong. Run make judge-demo to rebuild "
+    "every number offline.")
 
 
 def e(text):
@@ -106,17 +70,16 @@ def verdict_badge(verdict):
     return f'<span class="verdict {e(verdict)}">{e(verdict)}</span>'
 
 
-def section(anchor, title, body, source, method, takeaway):
+def section(anchor, title, body, method, takeaway):
     return (f'<section class="chart" id="{e(anchor)}">\n<h3>{e(title)}</h3>\n<figure>\n'
             f'<figcaption><span class="fig-label">Figure</span> '
             f'<span class="takeaway">{takeaway}</span></figcaption>\n{body}\n</figure>\n'
-            f'<p class="method"><strong>Method.</strong> {method}</p>\n'
-            f'<p class="source"><strong>Source.</strong> {source}</p>\n</section>')
+            f'<p class="method"><strong>Method.</strong> {method}</p>\n</section>')
 
 
-def table(head, rows, attrs=None, wide=False):
+def table(head, rows, attrs=None):
     attrs = attrs or [""] * len(rows)
-    out = [f'<div class="table{" wide" if wide else ""}"><table><thead><tr>']
+    out = ['<div class="table"><table><thead><tr>']
     out += [f"<th>{h}</th>" for h in head]
     out.append("</tr></thead><tbody>")
     for row, attr in zip(rows, attrs):
@@ -133,14 +96,36 @@ def fee_sources(metrics):
         items.append(f"{e(name)}: {link(s.get('fees'), 'fees API')}, "
                      f"{link(s.get('fees_methodology'), 'methodology')}, "
                      f"{link(s.get('market_cap'), 'market cap')}")
-    return "DefiLlama and CoinGecko. " + "; ".join(items) + "."
+    return "; ".join(items) + "."
 
 
 def intents_sources(metrics):
     s = metrics["intents"].get("sources") or {}
-    return (f"DefiLlama, NEAR Intents: {link(s.get('net'), 'revenue')}, "
-            f"{link(s.get('gross'), 'fees')}, {link(s.get('holders'), 'holders revenue')}, "
+    return (f"{link(s.get('net'), 'revenue')}, {link(s.get('gross'), 'fees')}, "
+            f"{link(s.get('holders'), 'holders revenue')}, "
             f"{link(s.get('methodology'), 'methodology')}.")
+
+
+def sources(metrics):
+    """Every source of every figure, in one block after the evidence."""
+    def used_in(*anchors):
+        return " · ".join(f'<a href="#{a}">{e(SOURCE_LABELS[a])}</a>' for a in anchors)
+    items = [
+        ("Fees, revenue and market caps by chain", "DefiLlama and CoinGecko",
+         fee_sources(metrics), used_in("multiples", "variants", "float")),
+        ("NEAR Intents", "DefiLlama", intents_sources(metrics),
+         used_in("perimeters", "intents")),
+        ("Buyback account", "nearblocks",
+         f"{link(metrics['falsification']['c4']['source'], 'on-chain account')}.",
+         used_in("buybacks")),
+        ("Panel rule, formulas and frozen thresholds", "repository",
+         f"{link(CONFIG_URL, 'config/panel.toml')}.", used_in("scorecard", "variants")),
+    ]
+    rows = "".join(f'<li><strong>{e(title)}</strong> ({e(provider)}): {body} '
+                   f'<span class="used">Used in {figures}.</span></li>'
+                   for title, provider, body, figures in items)
+    return (f'<section class="sources" id="sources">\n<h2>Sources</h2>\n'
+            f'<ul class="sources">{rows}</ul>\n</section>')
 
 
 # ---------- charts ----------
@@ -365,7 +350,7 @@ def scorecard(metrics):
                      e(n.CONSEQUENCES[key])])
         attrs.append(f' data-criterion="{e(key)}" data-verdict="{e(criterion["verdict"])}"')
     return table(["Criterion, claim and formula", "Statistic", "Threshold", "Verdict",
-                  "Distance to firing", "If it fires"], rows, attrs, wide=True)
+                  "Distance to firing", "If it fires"], rows, attrs)
 
 
 def scorecard_takeaway(metrics):
@@ -401,7 +386,7 @@ def abstract(metrics, v):
     return f"""<header class="masthead" id="thesis">
 <h1>NEAR Against Its Peers</h1>
 <p class="subtitle">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
-<p class="byline">Théo Roussard · NEAR Hackathon, Investment Thesis track · Data as of <time datetime="{e(metrics["as_of"])}">{fmt_day(metrics["as_of"])}</time> · Not financial advice</p>
+<p class="byline">NEAR Hackathon, Investment Thesis track · Data as of <time datetime="{e(metrics["as_of"])}">{fmt_day(metrics["as_of"])}</time> · Not financial advice</p>
 <section class="abstract">
 <p><span class="runin">Abstract.</span> <span class="bottom-line">{e(n.bottom_line(metrics, v))}</span></p>
 <div class="readings">{readings}</div>
@@ -429,18 +414,18 @@ def key_points(metrics, v):
 
 
 def how_it_works():
-    steps = "".join(f"<li><h3>{e(title)}</h3><p>{e(text)}</p></li>" for title, text in HOW_STEPS)
-    terms = "".join(f"<dt>{e(term)}</dt><dd>{e(text)}</dd>" for term, text in GLOSSARY)
     return (f'<section class="explainer" id="how">\n<h2>Method</h2>\n'
-            f'<ol class="steps">{steps}</ol>\n<h3>Terms</h3>\n'
-            f'<dl class="glossary">{terms}</dl>\n</section>')
+            f'<p>{e(METHOD)}</p>\n</section>')
+
+
+SOURCE_LABELS = {"scorecard": "Scorecard", "multiples": "Multiples",
+                 "perimeters": "Perimeters", "variants": "Panel", "intents": "Intents revenue",
+                 "buybacks": "Buybacks", "float": "Dilution"}
 
 
 def toc():
-    links = [("key-points", "Key findings"), ("how", "Method"), ("evidence", "Evidence"),
-             ("scorecard", "Scorecard"), ("multiples", "Multiples"), ("perimeters", "Perimeters"),
-             ("variants", "Panel"), ("intents", "Intents revenue"), ("buybacks", "Buybacks"),
-             ("float", "Dilution")]
+    links = ([("key-points", "Key findings"), ("how", "Method"), ("evidence", "Evidence")]
+             + list(SOURCE_LABELS.items()) + [("sources", "Sources")])
     return ('<nav class="contents" aria-label="Contents"><span class="runin">Contents.</span> '
             + " · ".join(f'<a href="#{a}">{e(t)}</a>' for a, t in links) + "</nav>")
 
@@ -492,18 +477,18 @@ html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.62;
 font-family:"Iowan Old Style","Charter","Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
 font-variant-numeric:lining-nums;counter-reset:section figure}
-main{max-width:44rem;margin:0 auto;padding:0 16px}
+main{max-width:66rem;margin:0 auto;padding:0 24px}
 ::selection{background:var(--accent);color:var(--bg)}
 a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:.18em}
 a:hover{text-decoration-thickness:2px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 p{margin:0 0 .9em}
-p,li,dd,figcaption{max-width:68ch;text-wrap:pretty}
+p,li,dd,figcaption{text-wrap:pretty}
 h1{font-size:2.7rem;line-height:1.08;font-weight:600;letter-spacing:-.015em;margin:.7em 0 .3em;
 text-wrap:balance}
 .subtitle{font-size:1.22rem;line-height:1.45;font-style:italic;color:var(--ink-2);margin:0 0 1.1em;
 text-wrap:balance}
-.byline,.runin,.fig-label,.method strong,.source strong,th{font-variant-caps:all-small-caps;
+.byline,.runin,.fig-label,.method strong,th{font-variant-caps:all-small-caps;
 letter-spacing:.045em}
 .byline{color:var(--muted);font-size:1.02rem;margin:0 0 1.4em}
 .runin{font-weight:700;margin-right:.25em}
@@ -518,22 +503,19 @@ counter-increment:section}
 h2::before{content:counter(section) ".";margin-right:.5em;color:var(--muted);font-weight:400}
 h3{font-size:1.14rem;line-height:1.3;font-weight:600;margin:1.6em 0 .4em}
 .intro{color:var(--ink-2)}
-ol.points,ol.steps{margin:0;padding-left:1.7em}
-ol.points>li,ol.steps>li{margin:0 0 .9em;padding-left:.2em}
-ol.points>li::marker,ol.steps>li::marker{color:var(--muted);font-weight:600}
+ol.points{margin:0;padding-left:1.7em}
+ol.points>li{margin:0 0 .9em;padding-left:.2em}
+ol.points>li::marker{color:var(--muted);font-weight:600}
 li>h3{font-size:1.05rem;margin:0 0 .2em}
 li>p{margin:0}
 .more{white-space:nowrap;font-size:.92rem}
-dl.glossary{margin:.4em 0 0}
-dl.glossary dt{font-weight:600;margin-top:.7em}
-dl.glossary dd{margin:0;color:var(--ink-2)}
 section.chart{margin:0}
 figure{margin:0;counter-increment:figure}
 figcaption{margin:0 0 .7em;line-height:1.55}
 .fig-label{font-weight:700}
 .fig-label::after{content:" " counter(figure) "."}
-.method,.source,.legend{font-size:.84rem;line-height:1.5;color:var(--muted);margin:.45em 0}
-.method strong,.source strong{color:var(--ink-2);font-weight:700}
+.method,.legend{font-size:.84rem;line-height:1.5;color:var(--muted);margin:.45em 0}
+.method strong,ul.sources strong{color:var(--ink-2);font-weight:700}
 .legend{margin-top:.2em}
 .plot{overflow-x:auto;margin:.3em 0}
 svg{width:100%;min-width:560px;height:auto;display:block}
@@ -559,9 +541,8 @@ border-bottom:1px solid var(--rule);vertical-align:bottom}
 td{padding:.35em .5em;vertical-align:top}
 th:first-child,td:first-child{padding-left:0}
 th:last-child,td:last-child{padding-right:0}
-.table.wide{width:min(62rem,calc(100vw - 40px));
-margin-left:calc((100% - min(62rem,calc(100vw - 40px))) / 2)}
-.table.wide td:first-child{min-width:17rem}
+#scorecard td:first-child{min-width:15rem}
+#scorecard td:nth-child(5),#scorecard td:nth-child(6){min-width:8.5rem}
 .readings th:not(:first-child),.readings td:not(:first-child){text-align:right}
 code{font-family:inherit;font-size:.92em;font-style:italic;color:var(--ink-2)}
 .verdict{font-variant-caps:all-small-caps;letter-spacing:.05em;font-weight:700;white-space:nowrap}
@@ -574,14 +555,21 @@ font-size:.95rem;
 font-variant-numeric:tabular-nums}
 dl.facts dt{color:var(--ink-2)}dl.facts dd{margin:0;overflow-wrap:anywhere}
 .empty{color:var(--muted);font-style:italic}
+ul.sources{list-style:none;margin:0;padding:0;font-size:.84rem;line-height:1.5;color:var(--muted)}
+ul.sources li{margin:0 0 .45em}
+.used{color:var(--ink-2)}
 footer{margin:2.4em 0 1.6em;font-size:.84rem;
 line-height:1.55;color:var(--muted)}
 [id]{scroll-margin-top:16px}
-@media (max-width:560px){body{font-size:16px}
+@media (max-width:560px){body{font-size:16px}main{padding:0 16px}
 h1{font-size:2.05rem}.subtitle{font-size:1.08rem}
 dl.facts{grid-template-columns:1fr;gap:0}dl.facts dd{margin-bottom:.45em}}
-@media print{body{background:#fff;color:#000}main{max-width:none}
-.plot{overflow:visible}svg{min-width:0}section.chart{break-inside:avoid}}
+@media print{@page{size:A4;margin:13mm 14mm}
+html{font-size:12px}body{background:#fff;color:#000;font-size:12.5px;line-height:1.45}
+.table{overflow:visible}main{max-width:none;padding:0}
+h1{font-size:2rem;margin-top:0}h2{margin-top:1.3em}h3{margin-top:1.1em}
+.plot{overflow:visible}svg{min-width:0}figure,section.sources,footer{break-inside:avoid}
+h2,h3,figcaption{break-after:avoid}.more{display:none}}
 """
 
 
@@ -593,14 +581,12 @@ def render(metrics):
                            for row in metrics["add_one"])
     sections = [
         section("scorecard", "Falsification scorecard", scorecard(metrics),
-                f"Formulas and thresholds in {link(CONFIG_URL, 'config/panel.toml')}.",
                 "Each criterion is a tripwire: if it fires, that part of the thesis is wrong. "
                 "The thresholds were frozen in one tagged commit (thresholds-frozen) after these "
                 "numbers were visible and before "
                 "the thesis was written.",
                 scorecard_takeaway(metrics)),
         section("multiples", "Market cap per dollar of yearly fees", multiples_chart(metrics),
-                fee_sources(metrics),
                 f"Multiple = market cap on {fmt_day(as_of)} / fees summed over the trailing "
                 f"{days} days. Log scale. NEAR appears under its four perimeters; the peer "
                 f"median uses the peers only, never NEAR or the candidate chains. Peers are "
@@ -608,14 +594,11 @@ def render(metrics):
                 f"BASE+NET also counts NEAR's application revenue from Intents.",
                 multiples_takeaway(metrics)),
         section("perimeters", "Which NEAR fees count", perimeters_table(metrics),
-                intents_sources(metrics),
                 f"Every perimeter is a trailing {days}-day sum ending on {fmt_day(as_of)}, "
                 f"divided into NEAR's market cap on that day.",
                 "The multiple depends on which fees count as NEAR's. BASE+NET is the defended "
                 "reading; BASE+GROSS is an upper bound only. " + e(holders_note(metrics))),
         section("variants", "Does the result depend on the panel?", variants_chart(metrics),
-                f"Panel rule and candidates in {link(CONFIG_URL, 'config/panel.toml')}; "
-                f"fees and market caps as above.",
                 f"Ratio = NEAR BASE+NET multiple / median of the peer multiples. "
                 f"'+ X' adds a candidate chain to the peers ({candidates}); '- X' drops one "
                 f"peer. C1 fires to the right of k.",
@@ -623,7 +606,6 @@ def render(metrics):
         section("intents", "NEAR Intents revenue, and the share NEAR keeps", intents_chart(metrics)
                 + table(["Window", "Dates", "Net revenue", "Gross fees", "Net / gross"],
                         c2_windows),
-                intents_sources(metrics),
                 f"Whole windows ending on {fmt_day(as_of)}, none before "
                 f"{fmt_day(metrics['intents']['regime_break'])}: revenue is booked daily only "
                 f"since then, so earlier data is not comparable. C2 compares the last window's "
@@ -631,12 +613,10 @@ def render(metrics):
                 f"part of Intents fees NEAR keeps.",
                 intents_takeaway(metrics) + " " + capture_takeaway(metrics)),
         section("buybacks", "Do the buybacks reach holders?", buyback_card(metrics),
-                f"On-chain account: {link(metrics['falsification']['c4']['source'], 'nearblocks')}.",
                 "Outflows are transfers out of the buyback account since the first buyback. "
                 "A burn or lock policy would make the bought-back NEAR provably unspendable.",
                 buyback_takeaway(metrics)),
         section("float", "Dilution: circulating supply growth", float_table(metrics),
-                fee_sources(metrics),
                 "Circulating supply = market cap / price, compared at the start and the end of "
                 "the period, then annualized.",
                 float_takeaway(metrics)),
@@ -659,11 +639,12 @@ def render(metrics):
 {how_it_works()}
 <section class="evidence" id="evidence">
 <h2>Evidence</h2>
-<p class="intro">Each figure states what it shows in its caption, then the chart or table, the method and the source.</p>
+<p class="intro">Each figure states what it shows in its caption, then the chart or table and its method. The sources follow the evidence.</p>
 {chr(10).join(sections)}
 </section>
+{sources(metrics)}
 <footer>
-<p><span class="runin">Data and credits.</span> Fees and revenue: <a href="https://defillama.com">DefiLlama</a>. Market caps and prices: Powered by <a href="https://www.coingecko.com">CoinGecko</a>. Buyback account: nearblocks. The data belongs to its providers and is not covered by the code license (see <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/data/README.md">data/README.md</a>). Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>
+<p>Data from <a href="https://defillama.com">DefiLlama</a>. Powered by <a href="https://www.coingecko.com">CoinGecko</a>. The data belongs to its providers and is not covered by the code license (see <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/data/README.md">data/README.md</a>). Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>
 </footer>
 </main>
 </body>
