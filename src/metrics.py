@@ -80,6 +80,20 @@ def buckets(rows, as_of, size, earliest, max_missing=0):
     return out[::-1]
 
 
+def sum_between(rows, start, end):
+    """Sum of the values dated from start to end inclusive (ISO dates); absent days count 0."""
+    lo, hi = date.fromisoformat(start), date.fromisoformat(end)
+    return math.fsum(v for t, v in rows if lo <= _day(t) <= hi)
+
+
+def equal_between(a_rows, b_rows, start, end):
+    """True when two series hold the same value on every day from start to end inclusive."""
+    lo, hi = date.fromisoformat(start), date.fromisoformat(end)
+    a = {_day(t): v for t, v in a_rows if lo <= _day(t) <= hi}
+    b = {_day(t): v for t, v in b_rows if lo <= _day(t) <= hi}
+    return a == b
+
+
 def shift_date(iso, days):
     """The ISO date `days` after `iso` (negative `days` goes back)."""
     return (date.fromisoformat(iso) + timedelta(days=days)).isoformat()
@@ -171,6 +185,21 @@ def change(last, prior):
 
 
 # The buyback_policy value meaning no burn or lock policy is published (C4 fires on it).
+def c1_breakeven(market_cap, peer_median, k, base_fees, intents_net):
+    """Intents net revenue below which C1 would fire, holding NEAR's market cap and the peer
+    median fixed, and the share of current Intents net revenue that would have to disappear.
+
+    The share is None when no fall can make C1 fire (base fees alone suffice) or when C1
+    already fires.
+    """
+    if k is None or None in (market_cap, peer_median, base_fees, intents_net):
+        return None, None
+    breakeven = market_cap / (k * peer_median) - base_fees
+    if breakeven <= 0 or breakeven >= intents_net:
+        return breakeven, None
+    return breakeven, 1 - breakeven / intents_net
+
+
 NO_POLICY = "none published"
 
 
