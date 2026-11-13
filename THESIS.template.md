@@ -12,7 +12,7 @@ The measure is a **multiple**: market cap divided by the fees summed over the tr
 
 {{bottom_line}}
 
-> **Like-for-like caveat.** {{like_for_like_short}}
+> **Why two numbers.** {{like_for_like_short}}
 
 **Verdicts: {{verdict_summary}}** The evidence for each one follows.
 
@@ -31,12 +31,18 @@ The measure is a **multiple**: market cap divided by the fees summed over the tr
 
 Each criterion is a tripwire. If it fires, that part of the thesis is wrong. The thresholds were frozen in one tagged commit (`thresholds-frozen`) **after these numbers were visible**; the rationale for each one sits next to it in [`config/panel.toml`](config/panel.toml).
 
-| Criterion | Fires if | Threshold | Statistic | Verdict |
-|---|---|---|---|---|
-| {{c1}} Valuation | `{{c1_formula}}` | k = {{k}} | {{c1_statistic}} | **{{c1_verdict}}** |
-| {{c2}} Durability | `{{c2_formula}}` | drop larger than {{x}} | {{c2_statistic}} | **{{c2_verdict}}** |
-| {{c3}} Capture rate | `{{c3_formula}}` | drop larger than {{y}} | {{c3_statistic}} | **{{c3_verdict}}** |
-| {{c4}} Holder accrual | `{{c4_formula}}` | z = {{z}} | {{c4_statistic}} | **{{c4_verdict}}** |
+| Criterion | Fires if | Threshold | Statistic | Verdict | If it fires |
+|---|---|---|---|---|---|
+| {{c1}} Valuation | `{{c1_formula}}` | k = {{k}} | {{c1_statistic}} | **{{c1_verdict}}** | Even counting Intents, NEAR is not valued below its peers: the valuation case fails. |
+| {{c2}} Durability | `{{c2_formula}}` | drop larger than {{x}} | {{c2_statistic}} | **{{c2_verdict}}** | Intents revenue is not durable: the captured-revenue reading loses its base. |
+| {{c3}} Capture rate | `{{c3_formula}}` | drop larger than {{y}} | {{c3_statistic}} | **{{c3_verdict}}** | NEAR's cut of Intents fees is being competed away. |
+| {{c4}} Holder accrual | `{{c4_formula}}` | z = {{z}} | {{c4_statistic}} | **{{c4_verdict}}** | Holders do not provably capture the revenue: the strict holder reading is BASE. |
+
+**How far each criterion is from firing.**
+
+{{margins}}
+
+{{c1}} to {{c3}} sit far from their thresholds on this snapshot, and the thresholds were set after the numbers were seen. They guard against a reversal; they do not make the current reading more likely to be right.
 
 What would move the thesis the other way: a published burn or lock policy for the buyback account, with outflows kept below z, would make BASE+HOLDERS ({{base_holders_multiple}}) a defensible holder reading instead of BASE ({{base_multiple}}).
 
@@ -46,13 +52,17 @@ What would move the thesis the other way: a published burn or lock policy for th
 
 {{chains_table}}
 
-The peer median ({{peer_median}}) uses the peers only, never NEAR or the candidate chains. Two more chains pass the same rule; they test whether the result depends on the panel, but never enter the median:
+{{rank_note}}
+
+The peer median ({{peer_median}}) uses the peers only, never NEAR or the candidate chains. The candidate chains below pass the same rule; they test whether the result depends on the panel, but never enter the median:
 
 {{candidates}}
 
-**The four NEAR perimeters.** NEAR's market cap on {{as_of}} is {{near_market_cap}}. It is divided by four definitions of NEAR's fees, each a trailing {{trailing_days}}-day sum:
+**The NEAR perimeters.** NEAR's market cap on {{as_of}} is {{near_market_cap}}. It is divided by each definition of NEAR's fees below, each a trailing {{trailing_days}}-day sum:
 
 {{perimeters_table}}
+
+{{holders_note}}
 
 **NEAR Intents since the regime break.** The windows behind {{c2}} and {{c3}} are {{prior_window}} (prior) and {{last_window}} (last).
 
@@ -70,6 +80,9 @@ The peer median ({{peer_median}}) uses the peers only, never NEAR or the candida
   - the application revenue of the peers (the symmetric rule that would give every chain credit for apps that buy back or burn its token);
   - the split of Intents growth between volume and take rate;
   - NEAR's own front-end fees, separated from protocol fees.
+- **The valuation test is asymmetric.** {{c1}} compares NEAR with Intents against peers on base-layer fees only, because the peers' application revenue is not computed. A symmetric test would be a new criterion after the freeze, so it is left out rather than added after the fact.
+- **The buyback figures are hand-read.** The holdings and outflows behind {{c4}} were read on-chain on {{buyback_checked_on}} and recorded as sourced constants, not fetched by the pipeline.
+- **No multiple over time.** A trailing-year multiple needs two years of daily data, and CoinGecko's free API serves one; the thesis therefore rests on a single date.
 - **Ethereum's fees exclude its rollups**, which understates the activity Ethereum anchors.
 - **Intents looks more like a cross-chain exchange than a blockchain.** A second panel of cross-chain venues would test BASE+NET from another angle.
 - **Supply growth covers {{float_period}}.** CoinGecko's free API serves about a year of history. Market cap divided by price is a proxy for circulating supply: it includes unlocks and CoinGecko's own supply revisions.

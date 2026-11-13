@@ -48,6 +48,11 @@ class RenderTest(unittest.TestCase):
         self.assertIn("base-layer fees only", self.html)   # the like-for-like caveat
         self.assertIn("THESIS.md", self.html)
 
+    def test_judge_fixes_show_on_the_dashboard(self):
+        self.assertIn("not a separate test", self.html)          # BASE+HOLDERS explained
+        self.assertIn("depends on the perimeter", self.html)      # robustness scope
+        self.assertIn("after these numbers were visible and before the thesis", self.html)
+
     def test_data_providers_are_credited(self):
         # CoinGecko API terms (4.3) require "Powered by CoinGecko", displayed prominently.
         self.assertIn('Powered by <a href="https://www.coingecko.com">CoinGecko</a>', self.html)

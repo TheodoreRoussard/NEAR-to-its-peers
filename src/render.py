@@ -17,8 +17,8 @@ PERIMETER_NOTES = {
     "BASE": "Base-layer gas fees only. The strict holder reading.",
     "BASE+NET": "Plus the Intents revenue the NEAR ecosystem keeps. Captured revenue: "
                 "the defended perimeter, assuming the treasury acts for holders.",
-    "BASE+HOLDERS": "Plus the Intents revenue spent on NEAR buybacks. Sensitivity: "
-                    "as if the bought-back NEAR were burned or locked.",
+    "BASE+HOLDERS": "Plus the Intents revenue DefiLlama books as holders revenue: the part "
+                    "that funds NEAR buybacks.",
     "BASE+GROSS": "Plus all Intents fees, most of which never reach NEAR. Upper bound only.",
 }
 
@@ -221,6 +221,54 @@ def variants_chart(metrics):
     return "".join(out)
 
 
+def holders_note(metrics):
+    """What BASE+HOLDERS adds over BASE+NET, read from the data."""
+    hv = metrics["intents"].get("holders_vs_net") or {}
+    if hv.get("holders_equals_net_since_break"):
+        return (f"Since the regime break ({fmt_day(metrics['intents']['regime_break'])}), Intents "
+                f"holders revenue equals net revenue every day: all of it funds buybacks. "
+                f"BASE+HOLDERS therefore differs from BASE+NET only by the "
+                f"{fmt_usd(hv['net_before_break_in_trailing'])} of net revenue booked before the "
+                f"break, which BASE+NET counts and BASE+HOLDERS does not. It is not a separate "
+                f"test of the buyback assumption.")
+    return ("Since the regime break, holders revenue differs from net revenue, so BASE+HOLDERS "
+            "isolates the part of Intents revenue spent on buybacks.")
+
+
+def rank_note(metrics):
+    """Panel chains outside the rule's CoinGecko rank limit, with the effect of dropping them."""
+    panel = metrics.get("panel") or {}
+    limit, failures = panel.get("max_rank"), panel.get("rank_rule_failures") or []
+    if limit is None:
+        return "The rank limit of the panel rule is not recorded."
+    if not failures:
+        return (f"Every panel chain meets the rule's rank limit (top {limit} on CoinGecko) on "
+                f"{fmt_day(metrics['as_of'])}.")
+    variants = {v["label"]: v for v in metrics["panel_variants"]}
+    notes = []
+    for name in failures:
+        rank = metrics["chains"][name]["market_cap_rank"]
+        without = variants.get(f"- {name}")
+        effect = ("" if without is None else
+                  f" Without it, the NEAR BASE+NET ratio is {fmt_ratio(without['near_base_net_ratio'])}"
+                  f" and C1 {without['c1_verdict']}.")
+        notes.append(f"{name} ranks {rank} on CoinGecko on {fmt_day(metrics['as_of'])}, outside "
+                     f"the rule's top {limit}; it stays in the panel, which was frozen with the "
+                     f"thresholds.{effect}")
+    return " ".join(notes)
+
+
+def perimeter_dependence(metrics):
+    base = metrics["near_perimeters"]["BASE"]["ratio_to_peer_median"]
+    k = metrics["falsification"]["c1"]["threshold"]
+    if base is None:
+        return ""
+    fires = "" if k is None else (f", above k, so C1 would fire on that reading" if base > k
+                                  else ", still below k")
+    return (f"The verdict depends on the perimeter, not on the panel: on BASE, like for like, "
+            f"the ratio is {fmt_ratio(base)}{fires}.")
+
+
 def variants_takeaway(metrics):
     variants = [v for v in metrics["panel_variants"] if v["near_base_net_ratio"] is not None]
     c1 = metrics["falsification"]["c1"]
@@ -233,7 +281,8 @@ def variants_takeaway(metrics):
     if metrics["c1_verdict_same_in_all_variants"]:
         return (f"C1 {e(c1['verdict'])} in every panel variant: the NEAR BASE+NET ratio to the "
                 f"peer median ranges {span}, against k = {fmt_ratio(c1['threshold'])}. "
-                f"The verdict does not depend on which peer is in the panel.")
+                f"The verdict does not depend on which peer is in the panel. "
+                f"{perimeter_dependence(metrics)} {rank_note(metrics)}")
     firing = ", ".join(e(v["label"]) for v in variants if v["c1_verdict"] == "fires")
     return (f"The C1 verdict depends on the panel: it fires in {firing}. The ratio ranges "
             f"{span}, against k = {fmt_ratio(c1['threshold'])}.")
@@ -459,7 +508,8 @@ def render(metrics):
         section("scorecard", "Falsification scorecard", scorecard(metrics),
                 f"Formulas and thresholds in {link(CONFIG_URL, 'config/panel.toml')}.",
                 "Each criterion is a tripwire: if it fires, that part of the thesis is wrong. "
-                "The thresholds were frozen in one tagged commit (thresholds-frozen) before "
+                "The thresholds were frozen in one tagged commit (thresholds-frozen) after these "
+                "numbers were visible and before "
                 "the thesis was written.",
                 scorecard_takeaway(metrics)),
         section("multiples", "Market cap per dollar of yearly fees", multiples_chart(metrics),
@@ -475,7 +525,7 @@ def render(metrics):
                 f"Every perimeter is a trailing {days}-day sum ending on {fmt_day(as_of)}, "
                 f"divided into NEAR's market cap on that day.",
                 "The multiple depends on which fees count as NEAR's. BASE+NET is the defended "
-                "reading; BASE+GROSS is an upper bound only."),
+                "reading; BASE+GROSS is an upper bound only. " + e(holders_note(metrics))),
         section("variants", "Does the result depend on the panel?", variants_chart(metrics),
                 f"Panel rule and candidates in {link(CONFIG_URL, 'config/panel.toml')}; "
                 f"fees and market caps as above.",
