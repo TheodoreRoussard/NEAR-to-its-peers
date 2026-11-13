@@ -6,71 +6,23 @@ offline and over file://. Never reads the wall clock.
 """
 import html
 import math
-from datetime import date
 from pathlib import Path
+
+from src.fmt import (fmt_change, fmt_day, fmt_multiple, fmt_percent, fmt_ratio,  # noqa: F401
+                     fmt_short_day, fmt_usd)
+from src.narrative import (CRITERIA, PERIMETER_NOTES, holders_note,  # noqa: F401
+                           perimeter_dependence, rank_note, statistic_text)
 
 REPO = "https://github.com/TheodoreRoussard/NEAR-to-its-peers"
 CONFIG_URL = f"{REPO}/blob/main/config/panel.toml"
 THESIS_URL = f"{REPO}/blob/main/THESIS.md"
-
-PERIMETER_NOTES = {
-    "BASE": "Base-layer gas fees only. The strict holder reading.",
-    "BASE+NET": "Plus the Intents revenue the NEAR ecosystem keeps. Captured revenue: "
-                "the defended perimeter, assuming the treasury acts for holders.",
-    "BASE+HOLDERS": "Plus the Intents revenue DefiLlama books as holders revenue: the part "
-                    "that funds NEAR buybacks.",
-    "BASE+GROSS": "Plus all Intents fees, most of which never reach NEAR. Upper bound only.",
-}
-
-CRITERIA = {
-    "c1": ("C1", "Valuation", "NEAR BASE+NET is no more expensive than the peer median."),
-    "c2": ("C2", "Durability", "Intents net revenue does not collapse from one window to the next."),
-    "c3": ("C3", "Capture rate", "NEAR keeps its share of Intents fees."),
-    "c4": ("C4", "Holder accrual", "Bought-back NEAR provably stays out of circulation."),
-}
 
 
 def e(text):
     return html.escape(str(text), quote=True)
 
 
-# ---------- number formats ----------
-
-def fmt_multiple(value):
-    return "n/a" if value is None else f"{round(value):,}x"
-
-
-def fmt_ratio(value):
-    return "n/a" if value is None else f"{value:.2f}"
-
-
-def fmt_usd(value):
-    if value is None:
-        return "n/a"
-    if abs(value) >= 1e9:
-        return f"${value / 1e9:.2f}B"
-    if abs(value) >= 1e4:
-        return f"${value / 1e6:.2f}M"
-    return f"${value:,.0f}"
-
-
-def fmt_change(value, digits=0):
-    return "n/a" if value is None else f"{value * 100:+.{digits}f}%"
-
-
-def fmt_percent(value):
-    return "n/a" if value is None else f"{value * 100:.2f}%"
-
-
-def fmt_day(iso):
-    day = date.fromisoformat(iso)
-    return f"{day.day} {day.strftime('%b')} {day.year}"
-
-
-def fmt_short_day(iso):
-    day = date.fromisoformat(iso)
-    return f"{day.day} {day.strftime('%b')}"
-
+# ---------- chart geometry ----------
 
 def log_position(value, lo, hi, width):
     """Pixel position of `value` on a log axis from lo to hi, clamped to [0, width]."""
@@ -221,54 +173,6 @@ def variants_chart(metrics):
     return "".join(out)
 
 
-def holders_note(metrics):
-    """What BASE+HOLDERS adds over BASE+NET, read from the data."""
-    hv = metrics["intents"].get("holders_vs_net") or {}
-    if hv.get("holders_equals_net_since_break"):
-        return (f"Since the regime break ({fmt_day(metrics['intents']['regime_break'])}), Intents "
-                f"holders revenue equals net revenue every day: all of it funds buybacks. "
-                f"BASE+HOLDERS therefore differs from BASE+NET only by the "
-                f"{fmt_usd(hv['net_before_break_in_trailing'])} of net revenue booked before the "
-                f"break, which BASE+NET counts and BASE+HOLDERS does not. It is not a separate "
-                f"test of the buyback assumption.")
-    return ("Since the regime break, holders revenue differs from net revenue, so BASE+HOLDERS "
-            "isolates the part of Intents revenue spent on buybacks.")
-
-
-def rank_note(metrics):
-    """Panel chains outside the rule's CoinGecko rank limit, with the effect of dropping them."""
-    panel = metrics.get("panel") or {}
-    limit, failures = panel.get("max_rank"), panel.get("rank_rule_failures") or []
-    if limit is None:
-        return "The rank limit of the panel rule is not recorded."
-    if not failures:
-        return (f"Every panel chain meets the rule's rank limit (top {limit} on CoinGecko) on "
-                f"{fmt_day(metrics['as_of'])}.")
-    variants = {v["label"]: v for v in metrics["panel_variants"]}
-    notes = []
-    for name in failures:
-        rank = metrics["chains"][name]["market_cap_rank"]
-        without = variants.get(f"- {name}")
-        effect = ("" if without is None else
-                  f" Without it, the NEAR BASE+NET ratio is {fmt_ratio(without['near_base_net_ratio'])}"
-                  f" and C1 {without['c1_verdict']}.")
-        notes.append(f"{name} ranks {rank} on CoinGecko on {fmt_day(metrics['as_of'])}, outside "
-                     f"the rule's top {limit}; it stays in the panel, which was frozen with the "
-                     f"thresholds.{effect}")
-    return " ".join(notes)
-
-
-def perimeter_dependence(metrics):
-    base = metrics["near_perimeters"]["BASE"]["ratio_to_peer_median"]
-    k = metrics["falsification"]["c1"]["threshold"]
-    if base is None:
-        return ""
-    fires = "" if k is None else (f", above k, so C1 would fire on that reading" if base > k
-                                  else ", still below k")
-    return (f"The verdict depends on the perimeter, not on the panel: on BASE, like for like, "
-            f"the ratio is {fmt_ratio(base)}{fires}.")
-
-
 def variants_takeaway(metrics):
     variants = [v for v in metrics["panel_variants"] if v["near_base_net_ratio"] is not None]
     c1 = metrics["falsification"]["c1"]
@@ -388,11 +292,6 @@ def threshold_text(key, criterion):
         return "not set"
     return {"c1": f"k = {fmt_ratio(t)}", "c2": f"x = {fmt_ratio(t)}",
             "c3": f"y = {fmt_ratio(t)}", "c4": f"z = {e(t)}%"}[key]
-
-
-def statistic_text(key, criterion):
-    s = criterion["statistic"]
-    return {"c1": fmt_ratio, "c2": fmt_change, "c3": fmt_change, "c4": fmt_percent}[key](s)
 
 
 def scorecard(metrics):
