@@ -523,12 +523,12 @@ def render(metrics):
 <header>
 <h1>NEAR Against Its Peers</h1>
 <p class="lede">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
-<p class="meta">Data as of <time datetime="{e(as_of)}">{fmt_day(as_of)}</time> · trailing {days} days · {link(THESIS_URL, 'the thesis')} · {link(REPO, 'code and data')} · Not financial advice.</p>
+<p class="meta">Data as of <time datetime="{e(as_of)}">{fmt_day(as_of)}</time> · trailing {days} days · {link(THESIS_URL, 'the thesis')} · {link(REPO, 'code and data')} · Data from <a href="https://defillama.com">DefiLlama</a> · Powered by <a href="https://www.coingecko.com">CoinGecko</a> · Not financial advice.</p>
 <p class="notice">The falsification thresholds (k, x, y, z) were frozen after these numbers were visible. The rationale for each one sits next to it in {link(CONFIG_URL, 'config/panel.toml')}.</p>
 </header>
 {chr(10).join(sections)}
 <footer>
-<p>Data: DefiLlama (fees and revenue) and CoinGecko (market caps), from a committed snapshot. Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>
+<p>Fees and revenue: <a href="https://defillama.com">DefiLlama</a>. Market caps and prices: Powered by <a href="https://www.coingecko.com">CoinGecko</a>. Buyback account: nearblocks. The data belongs to its providers and is not covered by the code license (see <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/data/README.md">data/README.md</a>). Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>
 </footer>
 </main>
 </body>

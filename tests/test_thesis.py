@@ -65,6 +65,11 @@ class ContentTest(unittest.TestCase):
         self.assertIn("base-layer fees only", self.text)   # the like-for-like caveat
         self.assertIn("Not computed", self.text)
 
+    def test_data_providers_are_credited(self):
+        self.assertIn("Powered by [CoinGecko](https://www.coingecko.com)", self.text)
+        self.assertIn("[DefiLlama](https://defillama.com)", self.text)
+        self.assertIn("data/README.md", self.text)
+
     def test_banned_wording_is_absent(self):
         lowered = self.text.lower()
         self.assertNotIn("cheapest", lowered)

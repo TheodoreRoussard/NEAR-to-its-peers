@@ -47,6 +47,11 @@ class RenderTest(unittest.TestCase):
         self.assertIn("after these numbers were visible", self.html)
         self.assertIn("base-layer fees only", self.html)   # the like-for-like caveat
         self.assertIn("THESIS.md", self.html)
+
+    def test_data_providers_are_credited(self):
+        # CoinGecko API terms (4.3) require "Powered by CoinGecko", displayed prominently.
+        self.assertIn('Powered by <a href="https://www.coingecko.com">CoinGecko</a>', self.html)
+        self.assertIn('<a href="https://defillama.com">DefiLlama</a>', self.html)
         self.assertIn(REAL["as_of"], self.html)
 
     def test_every_chart_has_a_source_a_method_and_a_takeaway(self):
