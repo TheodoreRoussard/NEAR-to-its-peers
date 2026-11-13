@@ -147,6 +147,37 @@ class BucketsTest(unittest.TestCase):
         self.assertEqual(metrics.buckets(rows, "2026-01-10", size=3, earliest="2026-01-09"), [])
 
 
+class C1BreakevenTest(unittest.TestCase):
+    # Market cap 1000, peer median 10, k 1: C1 fires once the denominator falls below 100.
+    def test_breakeven_and_the_drop_needed_to_fire(self):
+        breakeven, drop = metrics.c1_breakeven(1000, 10, 1, base_fees=20, intents_net=200)
+        self.assertEqual(breakeven, 80)
+        self.assertAlmostEqual(drop, 0.6)
+
+    def test_no_threshold_gives_nothing(self):
+        self.assertEqual(metrics.c1_breakeven(1000, 10, None, 20, 200), (None, None))
+
+    def test_base_fees_alone_keep_c1_from_firing(self):
+        self.assertEqual(metrics.c1_breakeven(1000, 10, 1, base_fees=150, intents_net=200),
+                         (-50, None))
+
+    def test_already_firing_needs_no_drop(self):
+        self.assertEqual(metrics.c1_breakeven(1000, 10, 1, base_fees=20, intents_net=50), (80, None))
+
+
+class SumBetweenTest(unittest.TestCase):
+    def test_sums_inclusive_dates_and_ignores_the_rest(self):
+        rows = daily("2026-01-01", [1, 2, 3, 4, 5])
+        self.assertEqual(metrics.sum_between(rows, "2026-01-02", "2026-01-04"), 2 + 3 + 4)
+
+    def test_equal_between_compares_every_day(self):
+        a = daily("2026-01-01", [1, 2, 3])
+        self.assertTrue(metrics.equal_between(a, daily("2026-01-01", [9, 2, 3]),
+                                              "2026-01-02", "2026-01-03"))
+        self.assertFalse(metrics.equal_between(a, daily("2026-01-01", [1, 2, 4]),
+                                               "2026-01-01", "2026-01-03"))
+
+
 if __name__ == "__main__":
     unittest.main()
 

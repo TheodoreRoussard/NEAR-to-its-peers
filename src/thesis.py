@@ -41,6 +41,11 @@ def usd(value):
     return r.fmt_usd(value).replace("$", "\\$")
 
 
+def md(text):
+    """Escape the dollar signs of a plain-text sentence for GitHub markdown."""
+    return text.replace("$", "\\$")
+
+
 def drop(share):
     return "not set" if share is None else f"{share * 100:.0f}%"
 
@@ -87,7 +92,11 @@ def change_claim(m, v, key, subject, before, after, condition):
         return (f"There is not enough data since the regime break to compare two windows of "
                 f"{subject}: {code} is pending.")
     direction = "rose" if c["statistic"] >= 0 else "fell"
-    head = (f"{subject[0].upper()}{subject[1:]} {direction} {abs(c['statistic']) * 100:.0f}%, from "
+    size = f"{abs(c['statistic']) * 100:.0f}%"
+    points = m.get("margins", {}).get("c3", {}).get("points_change")
+    if key == "c3" and points is not None:
+        size = f"by a relative {size} ({points * 100:+.2f} points)"
+    head = (f"{subject[0].upper()}{subject[1:]} {direction} {size}, from "
             f"{before} over the prior {v['window_days']}-day window to {after} over the last one")
     if c["verdict"] == "fires":
         return (f"{head}: more than the {drop(c['threshold'])} drop {code} tolerates, so {code} "
@@ -99,12 +108,18 @@ def change_claim(m, v, key, subject, before, after, condition):
 
 def c4_claim(m, v):
     c4 = m["falsification"]["c4"]
+    outflow = m.get("margins", {}).get("c4", {}).get("outflow_test")
     if c4["verdict"] == "fires" and c4["policy"] == "none published":
+        tests = (f" C4 has two tests: the policy test fires, while the outflow-share test alone "
+                 f"passes ({v['c4_statistic']} of the holdings, against z = {v['z']})."
+                 if outflow == "holds" else
+                 f" Both of its tests fire: no policy, and outflows of {v['c4_statistic']} of the "
+                 f"holdings, above z = {v['z']}." if outflow == "fires" else "")
         return (f"No burn or lock policy is published for the buyback account, which holds "
                 f"{v['holdings']}; {v['outflows']} have already left it. The bought-back NEAR can "
                 f"be spent again, so it is not provably held for holders: C4 fires, and the strict "
                 f"holder reading stays BASE ({v['base_multiple']}, {v['base_ratio']} times the peer "
-                f"median).")
+                f"median).{tests}")
     if c4["verdict"] == "fires":
         return (f"A {c4['policy']} policy is published, but {v['c4_statistic']} of the holdings "
                 f"left the account, above z = {v['z']}: C4 fires.")
@@ -115,19 +130,32 @@ def c4_claim(m, v):
     return f"A {c4['policy']} policy is published but z is not set: C4 is pending."
 
 
-def bottom_line(m):
+def base_position(m):
+    peers = [c["multiple"] for n, c in m["chains"].items()
+             if n != "NEAR" and c["multiple"] is not None]
+    base = m["near_perimeters"]["BASE"]["multiple"]
+    if base is None or not peers:
+        return "not comparable for lack of data"
+    if base > max(peers):
+        return "higher than every peer"
+    return f"higher than {sum(p < base for p in peers)} of the {len(peers)} peers"
+
+
+def bottom_line(m, v):
     f = {k: c["verdict"] for k, c in m["falsification"].items()}
-    valuation = {"holds": "On the revenue its ecosystem captures, NEAR is valued below its "
-                          "typical peer",
-                 "fires": "Even on the revenue its ecosystem captures, NEAR is valued above its "
-                          "typical peer",
-                 "pending": "The valuation test on captured revenue is pending"}[f["c1"]]
+    counted = (f"Counting the Intents revenue its ecosystem captures, NEAR is valued at "
+               f"{v['c1_statistic']} times the peer median")
+    valuation = {"holds": f"{counted}, below its typical peer",
+                 "fires": f"Even {counted[0].lower()}{counted[1:]}, above its typical peer",
+                 "pending": f"{counted}; the valuation test is pending"}[f["c1"]]
+    valuation += (f"; like for like, on base-layer fees alone, it is valued at {v['base_ratio']} "
+                  f"times, {base_position(m)}. On the captured-revenue reading")
     tripped = [k.upper() for k in ("c2", "c3") if f[k] == "fires"]
     if tripped:
-        revenue = (f"the Intents revenue behind that reading weakened enough to trip "
+        revenue = (f"the Intents revenue behind it weakened enough to trip "
                    f"{listing(tripped)}")
     elif f["c2"] == f["c3"] == "holds":
-        revenue = "the Intents revenue behind that reading held up over the last window"
+        revenue = "the Intents revenue behind it held up over the last window"
     else:
         revenue = "the durability of the Intents revenue behind it is still pending"
     if f["c4"] == "fires":
@@ -141,16 +169,32 @@ def bottom_line(m):
     return f"{valuation}, {revenue}, {holders}"
 
 
+def c1_margin(m, v):
+    c1, margin = m["falsification"]["c1"], m.get("margins", {}).get("c1", {})
+    breakeven, share = margin.get("intents_net_breakeven"), margin.get("intents_net_drop_to_fire")
+    if c1["verdict"] != "holds" or breakeven is None:
+        return ""
+    if share is None:
+        return ("Base-layer fees alone keep the ratio below k, so no fall in Intents revenue "
+                "could make C1 fire.")
+    return (f"Holding NEAR's market cap and the peer median fixed, C1 would fire only if "
+            f"trailing-year Intents net revenue fell below {usd(breakeven)}, a drop of "
+            f"{share * 100:.0f}%.")
+
+
+def post_break(m):
+    pb, c1 = m.get("post_break_reading"), m["falsification"]["c1"]
+    if not pb or pb["ratio_to_peer_median"] is None:
+        return ""
+    tail = ("too" if pb["c1_verdict"] == c1["verdict"]
+            else f"too, while it {c1['verdict']} on the trailing year")
+    return (f"Counting only Intents revenue booked since the regime break, annualized, the ratio "
+            f"is {r.fmt_ratio(pb['ratio_to_peer_median'])} ({r.fmt_multiple(pb['multiple'])}): "
+            f"C1 {pb['c1_verdict']} on that reading {tail}.")
+
+
 def like_for_like(m, v):
-    peers = [c["multiple"] for n, c in m["chains"].items()
-             if n != "NEAR" and c["multiple"] is not None]
-    base = m["near_perimeters"]["BASE"]["multiple"]
-    if base is None or not peers:
-        position = "not comparable for lack of data"
-    elif base > max(peers):
-        position = "higher than every peer"
-    else:
-        position = f"higher than {sum(p < base for p in peers)} of the {len(peers)} peers"
+    position = base_position(m)
     return (f"Peers are measured on base-layer fees only, while BASE+NET adds the application "
             f"revenue NEAR captures through Intents; no peer gets the same credit for its own "
             f"applications. Like for like, on base-layer fees alone, NEAR trades at "
@@ -164,12 +208,12 @@ def variants_sentence(m):
     ratios = [x["near_base_net_ratio"] for x in variants]
     span = f"from {r.fmt_ratio(min(ratios))} to {r.fmt_ratio(max(ratios))}"
     if m["c1_verdict_same_in_all_variants"]:
-        return (f"Adding either candidate chain or dropping any one peer moves the NEAR BASE+NET "
-                f"ratio {span} across {len(variants)} panels, and the C1 verdict stays the same "
-                f"in every one.")
+        return (f"Across the panel itself and {len(variants) - 1} variants (adding either "
+                f"candidate chain or dropping any one peer), the NEAR BASE+NET ratio moves {span}, "
+                f"and the C1 verdict stays the same in every one. {r.perimeter_dependence(m)}")
     firing = listing([x["label"] for x in variants if x["c1_verdict"] == "fires"])
     return (f"The C1 verdict depends on the panel: the NEAR BASE+NET ratio ranges {span}, and "
-            f"C1 fires in these panels: {firing}.")
+            f"C1 fires in these panels: {firing}. {r.perimeter_dependence(m)}")
 
 
 def bucket_sentence(m):
@@ -203,11 +247,12 @@ def evidence(m, v):
     """Bullets for and against, each placed by what the data currently says."""
     f = m["falsification"]
     pro, con = [], []
-    (pro if f["c1"]["verdict"] == "holds" else con).append(v["c1_claim"])
+    c1_text = " ".join(x for x in (v["c1_claim"], v["c1_margin"], md(post_break(m))) if x)
+    (pro if f["c1"]["verdict"] == "holds" else con).append(c1_text)
     if m["c1_verdict_same_in_all_variants"] and f["c1"]["verdict"] == "holds":
-        pro.append(variants_sentence(m))
+        pro.append(md(variants_sentence(m)))
     else:
-        con.append(variants_sentence(m))
+        con.append(md(variants_sentence(m)))
     for key in ("c2", "c3"):
         c = f[key]
         good = c["verdict"] == "holds" and c["statistic"] is not None and c["statistic"] >= 0
@@ -218,9 +263,32 @@ def evidence(m, v):
     favourable, text = float_sentence(m)
     (pro if favourable else con).append(text)
     con.insert(0, like_for_like(m, v))
+    if (m.get("panel") or {}).get("rank_rule_failures"):
+        con.append(md(r.rank_note(m)))
     (pro if f["c4"]["verdict"] == "holds" else con).append(v["c4_claim"])
     return ("\n".join(f"- {line}" for line in pro) or "- None yet.",
             "\n".join(f"- {line}" for line in con))
+
+
+def margins_list(m, v):
+    """How far each criterion is from firing, one bullet each."""
+    f, mg = m["falsification"], m.get("margins", {})
+    items = []
+    items.append(f"**C1:** {v['c1_margin'] or 'no margin to report while C1 ' + f['c1']['verdict'] + '.'}")
+    level = mg.get("c2", {}).get("last_net_fires_below")
+    if level is not None:
+        items.append(f"**C2:** it would fire if Intents net revenue over the last "
+                     f"{v['window_days']} days fell below {usd(level)}.")
+    share = mg.get("c3", {}).get("last_share_fires_below")
+    if share is not None:
+        items.append(f"**C3:** it would fire if NEAR's share of Intents fees over the last "
+                     f"{v['window_days']} days fell below {r.fmt_percent(share)}.")
+    c4 = mg.get("c4", {})
+    if c4:
+        items.append(f"**C4:** policy test {c4['policy_test']}; outflow-share test "
+                     f"{c4['outflow_test']}. Publishing a burn or lock policy would leave only the "
+                     f"outflow test.")
+    return "\n".join(f"- {line}" for line in items)
 
 
 # ---------- tables and lists ----------
@@ -326,10 +394,17 @@ def values(m):
     v["c4_claim"] = c4_claim(m, v)
     v["like_for_like"] = like_for_like(m, v)
     v["like_for_like_short"] = (
-        f"Peers are measured on base-layer fees only; BASE+NET also counts NEAR's application "
-        f"revenue from Intents. Like for like, on base-layer fees alone, NEAR trades at "
-        f"{v['base_ratio']} times the peer median ({v['base_multiple']}).")
-    v["bottom_line"] = bottom_line(m)
+        f"Peers are measured on base-layer fees only. The first number (BASE+NET, "
+        f"{v['base_net_multiple']}) also counts the application revenue NEAR captures through "
+        f"Intents, which no peer gets for its own applications; the second (BASE, "
+        f"{v['base_multiple']}) is the like-for-like comparison.")
+    v["bottom_line"] = bottom_line(m, v)
+    v["c1_margin"] = c1_margin(m, v)
+    v["post_break"] = md(post_break(m))
+    v["holders_note"] = md(r.holders_note(m))
+    v["rank_note"] = md(r.rank_note(m))
+    v["variants"] = md(variants_sentence(m))
+    v["margins"] = margins_list(m, v)
     v["verdict_summary"] = verdict_summary(f)
     v["evidence_for"], v["evidence_against"] = evidence(m, v)
     v.update(bucket_table=bucket_table(m), perimeters_table=perimeters_table(m),

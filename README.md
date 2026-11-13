@@ -32,7 +32,7 @@ You should see:
 **3. See the charts.** Open `docs/index.html` in a browser, or the [published copy](https://theodoreroussard.github.io/NEAR-to-its-peers/). The page has no scripts and loads nothing from the network, so it also works offline.
 
 **4. Check that the verdicts are computed, not written.**
-- Edit a threshold in `config/panel.toml`: for example, set `k = 0.3` under `[falsification.thresholds]`.
+- Edit a threshold in `config/panel.toml`: under `[falsification.thresholds]`, change `k = 1.0` to `k = 0.3`.
 - Run `make build`. C1 now fires, and both `THESIS.md` and the dashboard say so.
 - Run `git checkout .` to restore.
 
@@ -75,7 +75,7 @@ src/thesis.py  metrics.json + THESIS.template.md ──► THESIS.md
 
 - **Built during the hackathon.** The first commit is dated 2026-11-11, after the 2026-10-19 announcement. There is no pre-hackathon code, so there is no baseline to separate.
 - **Other chains.** Data from Solana, Ethereum, Avalanche, Sui, Aptos, Tron and Cardano is used only as a comparison. There is no existing product on another chain.
-- **Libraries, templates, boilerplate.** None. Only the Python standard library is used.
+- **Libraries, templates, boilerplate.** None. Only the Python standard library is used. CI uses the standard GitHub Actions `actions/checkout`, `actions/setup-python`, `actions/upload-pages-artifact` and `actions/deploy-pages`.
 - **AI-written code.** The code, tests and documents were written with [Claude Code](https://claude.com/claude-code) (Anthropic) as a coding assistant, under the author's direction. The author made and approved the decisions on method, the peer panel and the falsification thresholds. `CLAUDE.md` holds the rules the assistant follows in this repository.
 - **Other projects.** None.
 

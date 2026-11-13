@@ -78,6 +78,46 @@ def _sources(raw_dir):
     return json.loads((raw_dir / "MANIFEST.json").read_text()).get("sources", {})
 
 
+def _ranks(raw_dir):
+    """CoinGecko market-cap rank by coin id, from the snapshot's markets file (empty if absent)."""
+    path = raw_dir / "coingecko_markets.json"
+    if not path.exists():
+        return {}
+    return {coin["id"]: coin.get("market_cap_rank") for coin in json.loads(path.read_text())}
+
+
+def _rank_failures(config, chains):
+    """Panel chains whose CoinGecko rank is outside the rule's limit (unknown ranks pass)."""
+    limit = config.get("panel_rule", {}).get("max_coingecko_rank")
+    if limit is None:
+        return []
+    return [name for name, c in chains.items()
+            if c["market_cap_rank"] is not None and c["market_cap_rank"] > limit]
+
+
+def _margins(config, f, near, peer_median, intents_net, last, prior):
+    """How far each criterion is from firing. Thresholds come from the config."""
+    t = config["falsification"].get("thresholds", {})
+    breakeven, drop = m.c1_breakeven(near["market_cap"], peer_median, t.get("k"),
+                                     near["fees_trailing"], intents_net)
+
+    def level(value, share):
+        return None if value is None or share is None else (1 - share) * value
+
+    points = (None if last["net_over_gross"] is None or prior["net_over_gross"] is None
+              else last["net_over_gross"] - prior["net_over_gross"])
+    outflow = m.criterion(f["c4"]["statistic"], t.get("z"), m.ABOVE_PERCENT)["verdict"]
+    return {
+        "c1": {"held_fixed": "NEAR market cap and the peer median",
+               "intents_net_breakeven": breakeven, "intents_net_drop_to_fire": drop},
+        "c2": {"last_net_fires_below": level(prior["net"], t.get("x"))},
+        "c3": {"last_share_fires_below": level(prior["net_over_gross"], t.get("y")),
+               "points_change": points},
+        "c4": {"policy_test": "fires" if f["c4"]["policy"] == m.NO_POLICY else "holds",
+               "outflow_test": outflow},
+    }
+
+
 def _chain_entry(raw_dir, chain, as_of, days, gaps):
     """Market cap, trailing fees and multiple of one chain (a panel chain or a candidate)."""
     fees_file = f"defillama_{chain['defillama_slug']}_dailyFees.json"
@@ -91,6 +131,7 @@ def _chain_entry(raw_dir, chain, as_of, days, gaps):
     return {"market_cap": cap, "fees_trailing": fees, "multiple": m.multiple(cap, fees),
             "missing_days": m.missing_days(rows, as_of, days),
             "float_growth": m.float_growth(chart["prices"], caps, as_of),
+            "market_cap_rank": _ranks(raw_dir).get(chain["coingecko_id"]),
             "sources": {"fees": sources.get(fees_file),
                         "fees_methodology": json.loads((raw_dir / fees_file).read_text())
                         .get("methodologyURL"),
@@ -184,6 +225,23 @@ def compute(raw_dir, config, as_of):
     intents_missing_days = {key: m.missing_days(rows, as_of, days) for key, rows in series.items()}
 
     falsification = _falsification(config, near_perimeters, last, prior)
+    intents_net = m.trailing_sum(series["net"], as_of, days, max_missing=gaps)
+    margins = _margins(config, falsification, near, peer_median, intents_net, last, prior)
+
+    window_start = m.shift_date(as_of, -(days - 1))
+    holders_vs_net = {
+        "net_before_break_in_trailing": m.sum_between(
+            series["net"], window_start, m.shift_date(break_day, -1)),
+        "holders_equals_net_since_break": m.equal_between(
+            series["net"], series["holders"], break_day, as_of)}
+
+    net_since_break = m.annualized(_since(series["net"], break_day), as_of, days, max_missing=gaps)
+    post_break_multiple = m.multiple(near["market_cap"], near["fees_trailing"] + net_since_break)
+    post_break_ratio = None if post_break_multiple is None else post_break_multiple / peer_median
+    k = config["falsification"].get("thresholds", {}).get("k")
+    post_break = {"intents_net_annualized": net_since_break, "multiple": post_break_multiple,
+                  "ratio_to_peer_median": post_break_ratio,
+                  "c1_verdict": m.criterion(post_break_ratio, k, m.ABOVE)["verdict"]}
     add_one = _add_one(raw_dir, config, as_of, peers, near_perimeters["BASE+NET"]["multiple"])
     variants = _panel_variants(config, peers_by_name, add_one,
                                near_perimeters["BASE+NET"]["multiple"])
@@ -196,7 +254,10 @@ def compute(raw_dir, config, as_of):
 
     return {"as_of": as_of, "trailing_days": days, "chains": chains,
             "peer_median_multiple": peer_median, "add_one": add_one,
+            "margins": margins, "post_break_reading": post_break,
             "panel": {"rule": config.get("panel_rule", {}).get("description"),
+                      "max_rank": config.get("panel_rule", {}).get("max_coingecko_rank"),
+                      "rank_rule_failures": _rank_failures(config, chains),
                       "fee_definition": config.get("panel_rule", {}).get("fee_definition"),
                       "reasons": {c["name"]: c.get("reason") for c in config["chains"]},
                       "candidate_reasons": {c["name"]: c.get("reason")
@@ -208,6 +269,7 @@ def compute(raw_dir, config, as_of):
                         "windows": {"last_90d": last, "prior_90d": prior},
                         "run_rate_90d": run_rate,
                         "missing_days": intents_missing_days,
+                        "holders_vs_net": holders_vs_net,
                         "buckets_30d": [{"start": n["start"], "end": n["end"],
                                          "net": n["sum"], "gross": g["sum"]}
                                         for n, g in zip(net_buckets, gross_buckets)],

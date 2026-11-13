@@ -55,7 +55,7 @@ class ContentTest(unittest.TestCase):
 
     def test_follows_the_track_structure(self):
         for heading in ("## The claim", "## Evidence for", "## Evidence against",
-                        "## What would change my mind", "## Limitations"):
+                        "## What would change my mind", "## Limitations", "If it fires"):
             with self.subTest(heading=heading):
                 self.assertIn(heading, self.text)
 
@@ -138,6 +138,52 @@ class ConditionalProseTest(unittest.TestCase):
         flipped = thesis.values(with_verdict(REAL, "c1", "fires", 1.4))["bottom_line"]
         self.assertIn("above its typical peer", flipped)
         self.assertNotIn("below its typical peer", flipped)
+
+    def test_bottom_line_states_both_readings(self):
+        line = thesis.values(REAL)["bottom_line"]
+        self.assertIn(thesis.values(REAL)["c1_statistic"], line)
+        self.assertIn(thesis.values(REAL)["base_ratio"], line)
+
+    def test_c1_margin_follows_the_breakeven(self):
+        self.assertIn("would fire only if", thesis.values(REAL)["c1_margin"])
+        m = copy.deepcopy(REAL)
+        m["margins"]["c1"].update(intents_net_breakeven=-5.0, intents_net_drop_to_fire=None)
+        self.assertIn("no fall in Intents revenue", thesis.values(m)["c1_margin"])
+        fired = with_verdict(REAL, "c1", "fires", 1.4)
+        fired["margins"]["c1"].update(intents_net_drop_to_fire=None)
+        self.assertNotIn("would fire only if", thesis.values(fired)["c1_margin"])
+
+    def test_post_break_reading_is_reported(self):
+        self.assertIn("since the regime break", thesis.values(REAL)["post_break"])
+
+    def test_holders_note_follows_the_data(self):
+        self.assertIn("not a separate test", thesis.values(REAL)["holders_note"])
+        m = copy.deepcopy(REAL)
+        m["intents"]["holders_vs_net"]["holders_equals_net_since_break"] = False
+        self.assertNotIn("not a separate test", thesis.values(m)["holders_note"])
+
+    def test_rank_note_follows_the_data(self):
+        self.assertIn("Aptos ranks", thesis.values(REAL)["rank_note"])
+        m = copy.deepcopy(REAL)
+        m["panel"]["rank_rule_failures"] = []
+        note = thesis.values(m)["rank_note"]
+        self.assertIn("Every panel chain", note)
+        self.assertNotIn("Aptos", note)
+
+    def test_c3_reports_points_as_well_as_the_relative_change(self):
+        claim = thesis.values(REAL)["c3_claim"]
+        self.assertIn("points", claim)
+        self.assertIn("relative", claim)
+
+    def test_c4_reports_its_two_tests(self):
+        claim = thesis.values(REAL)["c4_claim"]
+        self.assertIn("outflow-share test alone passes", claim)
+        m = copy.deepcopy(REAL)
+        m["margins"]["c4"]["outflow_test"] = "fires"
+        self.assertNotIn("alone passes", thesis.values(m)["c4_claim"])
+
+    def test_panel_robustness_names_the_perimeter_dependence(self):
+        self.assertIn("depends on the perimeter", thesis.values(REAL)["variants"])
 
     def test_verdict_summary(self):
         self.assertEqual(thesis.values(REAL)["verdict_summary"], "C1, C2 and C3 hold; C4 fires.")

@@ -313,6 +313,48 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(panel["reasons"], {"NEAR": "Why NEAR.", "A": "Why A.", "B": "Why B."})
         self.assertEqual(panel["candidate_reasons"], {"C": "Why C.", "D": "Why D."})
 
+    def test_margins_say_how_far_each_criterion_is_from_firing(self):
+        write_snapshot(self.raw, CAPS)
+        config = {**CONFIG, "falsification": {**CONFIG["falsification"],
+                                              "thresholds": {"k": 0.1, "x": 0.5, "y": 0.25, "z": 30}}}
+        build.build(self.raw, self.out, config)
+        margins = json.loads((self.out / "metrics.json").read_text())["margins"]
+        # Market cap 3650, peer median 200, k 0.1: C1 fires below a denominator of 182.5.
+        # BASE fees 365 already exceed it, so no fall in Intents revenue can make C1 fire.
+        self.assertEqual(margins["c1"]["intents_net_breakeven"], 182.5 - 365)
+        self.assertIsNone(margins["c1"]["intents_net_drop_to_fire"])
+        self.assertEqual(margins["c4"], {"policy_test": "fires", "outflow_test": "holds"})
+        self.assertIsNone(margins["c2"]["last_net_fires_below"])   # windows before the break
+
+    def test_holders_against_net_since_the_regime_break(self):
+        hv = self.build()["intents"]["holders_vs_net"]
+        # Net is 1/day all year; holders is 2/day from 1 Nov (the break), 0 before.
+        self.assertEqual(hv["net_before_break_in_trailing"], 365 - 10)
+        self.assertFalse(hv["holders_equals_net_since_break"])
+
+    def test_post_break_reading_annualizes_net_since_the_break(self):
+        pb = self.build()["post_break_reading"]
+        self.assertEqual(pb["intents_net_annualized"], 365)        # 1/day
+        self.assertEqual(pb["multiple"], 5)                        # 3650 / (365 + 365)
+        self.assertEqual(pb["c1_verdict"], "pending")
+
+    def test_rank_rule_is_checked_against_coingecko(self):
+        write_snapshot(self.raw, CAPS)
+        (self.raw / "coingecko_markets.json").write_text(json.dumps([
+            {"id": "near", "market_cap_rank": 20}, {"id": "a", "market_cap_rank": 3},
+            {"id": "b", "market_cap_rank": 50}]))
+        config = {**CONFIG, "panel_rule": {"max_coingecko_rank": 30}}
+        build.build(self.raw, self.out, config)
+        m = json.loads((self.out / "metrics.json").read_text())
+        self.assertEqual(m["chains"]["B"]["market_cap_rank"], 50)
+        self.assertEqual(m["panel"]["max_rank"], 30)
+        self.assertEqual(m["panel"]["rank_rule_failures"], ["B"])
+
+    def test_rank_check_is_empty_without_market_data(self):
+        m = self.build()
+        self.assertIsNone(m["chains"]["A"]["market_cap_rank"])
+        self.assertEqual(m["panel"]["rank_rule_failures"], [])
+
     def test_missing_snapshot_fails_with_a_clear_message(self):
         with self.assertRaises(build.MissingSnapshot) as ctx:
             build.build(self.raw, self.out, CONFIG)
