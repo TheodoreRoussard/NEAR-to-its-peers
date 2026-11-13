@@ -15,7 +15,18 @@
 
 ## Try it
 
-Requirements: Python 3.11 or newer, and `make`. There is nothing to install, and no network or API key is needed.
+To read the thesis, you need nothing: open the [dashboard](https://theodoreroussard.github.io/NEAR-to-its-peers/) or [`THESIS.md`](THESIS.md). To rebuild it or change a parameter, you need your own copy of the repository, because every command below runs on local files.
+
+Requirements: `git`, Python 3.11 or newer, and `make`. There is nothing to install, and no API key is needed. Only step 0 (and the optional step 5) uses the network.
+
+**0. Get a copy of the repository.**
+
+```bash
+git clone https://github.com/TheodoreRoussard/NEAR-to-its-peers.git
+cd NEAR-to-its-peers
+```
+
+Run every command below from this folder. To review exactly the submitted version, also run `git checkout hackathon-submission`.
 
 **1. Rebuild everything and run the tests.**
 
@@ -31,11 +42,12 @@ You should see:
 
 **2. Read the result.** Open `THESIS.md`. The verdicts of the four criteria (C1 to C4) are stated under "The claim" and detailed under "What would change my mind".
 
-**3. See the charts.** Open `docs/index.html` in a browser, or the [published copy](https://theodoreroussard.github.io/NEAR-to-its-peers/). The page has no scripts and loads nothing from the network, so it also works offline.
+**3. See the charts.** Open `docs/index.html` from your copy in a browser, or the [published copy](https://theodoreroussard.github.io/NEAR-to-its-peers/). The page has no scripts and loads nothing from the network, so it also works offline.
 
 **4. Check that the verdicts are computed, not written.**
 - Edit a threshold in `config/panel.toml`: under `[falsification.thresholds]`, change `k = 1.0` to `k = 0.3`.
-- Run `make build`. C1 now fires, and both `THESIS.md` and the dashboard say so.
+- Run `make build`. C1 now fires, and both `THESIS.md` and your local `docs/index.html` say so (reload it in the browser).
+- These changes stay on your machine: the published page does not change.
 - Run `git checkout .` to restore.
 
 **5. Optional: refresh the data.** `make all` fetches fresh data from the public APIs, then rebuilds.
