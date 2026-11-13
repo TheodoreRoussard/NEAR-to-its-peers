@@ -1,4 +1,4 @@
-"""Offline build: data/raw/ -> data/processed/metrics.json, docs/index.html and THESIS.md.
+"""Offline build: data/raw/ -> data/processed/metrics.json, docs/index.html, THESIS.md and summary.txt.
 
 Never reads the wall clock: the date comes from data/raw/MANIFEST.json ("as_of").
 """
@@ -11,6 +11,7 @@ from statistics import median
 
 from src import metrics as m
 from src import render
+from src import summary
 from src import thesis
 
 BUCKET_DAYS = 30  # Intents revenue chart: whole 30-day buckets back from as_of
@@ -303,6 +304,7 @@ def main() -> int:
         return 1
     render.write(result, ROOT / "docs" / "index.html")
     thesis.write(result, (ROOT / "THESIS.template.md").read_text(), ROOT / "THESIS.md")
+    summary.write(result, ROOT / "summary.txt")
     return 0
 
 
