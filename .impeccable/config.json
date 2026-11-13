@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "docs/index.html"
+        ],
+        "createdAt": "2026-11-13T09:38:32.572Z",
+        "reason": "Claude, verified 2026-11-13: the 5 flagged colours (#bdbbb3, #9a978f, #5fae63, #e0675e, #4a8ad6) are dark-theme tokens used only on the dark ground #161615, where they measure 5.09-9.42:1; the static scan pairs them with white. A detect run on the rendered page reports no contrast issue. Re-run 'impeccable detect http://localhost:8765/index.html' after colour changes, since this ignore covers the whole file."
+      }
+    ]
+  }
+}
