@@ -114,7 +114,7 @@ This rebuilds `data/processed/metrics.json`, this file and the dashboard (`docs/
 
 ## Data sources
 
-DefiLlama (fees and revenue) and CoinGecko (market caps), keyless public APIs.
+Fees and revenue come from [DefiLlama](https://defillama.com). Market caps and prices: Powered by [CoinGecko](https://www.coingecko.com). Both are keyless public APIs. The buyback account was read on [nearblocks](https://nearblocks.io). The data belongs to its providers and is not covered by the code license: see [`data/README.md`](data/README.md).
 
 - NEAR: [fees API](https://api.llama.fi/summary/fees/near?dataType=dailyFees), [methodology](https://github.com/DefiLlama/dimension-adapters/blob/master/fees/near), [market cap](https://api.coingecko.com/api/v3/coins/near/market_chart?vs_currency=usd&days=365&interval=daily)
 - Solana: [fees API](https://api.llama.fi/summary/fees/solana?dataType=dailyFees), [methodology](https://github.com/DefiLlama/dimension-adapters/blob/master/fees/solana.ts), [market cap](https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=365&interval=daily)
