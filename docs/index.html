@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEAR Against Its Peers</title>
-<meta name="description" content="Valuation multiples of NEAR against its peers, with falsification criteria. Not financial advice.">
+<meta name="description" content="An investment thesis on NEAR: its market cap per dollar of fees against five peer chains, which NEAR Intents revenue can count, and four tripwires that would prove it wrong. Not financial advice.">
 <style>
 :root{--bg:#fbfaf7;--panel:#ffffff;--text:#1d1d1b;--muted:#6b6a65;--line:#e4e1d8;
 --near:#0f7b6c;--near-soft:#9fd3c7;--peer:#b8b4a8;--gross:#e6e1d3;--median:#b5452b;
@@ -46,20 +46,81 @@ dl.card{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:8
 dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
 a{color:var(--near)}footer{color:var(--muted);font-size:.9rem;margin-top:32px}
 .empty{color:var(--muted);font-style:italic}
+.toc{position:sticky;top:0;z-index:2;display:flex;gap:6px 14px;flex-wrap:wrap;padding:10px 0;
+background:var(--bg);border-bottom:1px solid var(--line);font-size:.85rem}
+.toc a{color:var(--muted);text-decoration:none}.toc a:hover{color:var(--near)}
+.hero{padding:28px 0 8px}.kicker{color:var(--near);font-weight:600;font-size:.85rem;
+letter-spacing:.04em;text-transform:uppercase;margin:0 0 6px}
+.answer{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--near);
+border-radius:8px;padding:20px;margin:16px 0}
+.bottom-line{font-size:1.12rem;line-height:1.6;margin:0 0 16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 12px}
+.tile{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--bg)}
+.tile-label{margin:0;color:var(--muted);font-size:.85rem;font-weight:600}
+.tile-value{margin:4px 0;font-size:2.2rem;font-weight:700;line-height:1.1}
+.tile-detail{margin:0;color:var(--muted);font-size:.85rem}
+.why{color:var(--muted);font-size:.92rem}
+.chips{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-block;padding:4px 12px;border-radius:14px;font-size:.85rem;
+text-decoration:none;color:var(--panel)}.chip.holds{background:var(--holds)}
+.chip.fires{background:var(--fires)}.chip.pending{background:var(--pending)}
+.meta-block{margin:0 0 8px}
+section.explainer{margin:28px 0}.intro{color:var(--muted)}
+ol.points,ol.steps{padding-left:0;list-style:none;counter-reset:item}
+ol.points>li,ol.steps>li{counter-increment:item;background:var(--panel);border:1px solid var(--line);
+border-radius:8px;padding:16px 16px 16px 56px;margin:12px 0;position:relative}
+ol.points>li::before,ol.steps>li::before{content:counter(item);position:absolute;left:16px;top:16px;
+width:28px;height:28px;border-radius:50%;background:var(--near);color:var(--panel);
+font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+ol.points h3,ol.steps h3{margin:2px 0 6px;font-size:1.02rem}ol.points p,ol.steps p{margin:0 0 6px}
+.more{font-size:.88rem}
+dl.glossary{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:8px 16px}
+dl.glossary dt{font-weight:600;color:var(--text)}
+@media (max-width:560px){dl.glossary{grid-template-columns:1fr}dl.glossary dd{margin-bottom:8px}}
+h2.part{font-size:1.5rem;margin:40px 0 4px}
+[id]{scroll-margin-top:52px}
+@media (max-width:560px){.toc{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}}
 </style>
 </head>
 <body>
 <main>
-<header>
+<nav class="toc" aria-label="On this page"><a href="#thesis">The thesis</a><a href="#key-points">Key points</a><a href="#how">How it works</a><a href="#scorecard">Scorecard</a><a href="#multiples">Multiples</a><a href="#perimeters">Perimeters</a><a href="#variants">Panel</a><a href="#intents">Intents revenue</a><a href="#capture">Capture rate</a><a href="#buybacks">Buybacks</a><a href="#float">Dilution</a></nav>
+<section class="hero" id="thesis">
+<p class="kicker">NEAR Hackathon · Investment Thesis track</p>
 <h1>NEAR Against Its Peers</h1>
 <p class="lede">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
+<div class="answer">
+<h2>The thesis</h2>
+<p class="bottom-line">Counting the Intents revenue its ecosystem captures, NEAR is valued at 0.34 times the peer median, below its typical peer; like for like, on base-layer fees alone, it is valued at 3.03 times, higher than every peer. On the captured-revenue reading, the Intents revenue behind it held up over the last window, but holders do not yet provably capture that revenue. The investment case rests on the treasury burning or locking what it buys back; until then the strict holder reading is BASE.</p>
+<div class="tiles">
+<div class="tile"><p class="tile-label">Counting Intents revenue (BASE+NET)</p><p class="tile-value">0.34&times;</p><p class="tile-detail">times the peer median: 452x against 1,348x</p></div>
+<div class="tile"><p class="tile-label">Like for like, base-layer fees only (BASE)</p><p class="tile-value">3.03&times;</p><p class="tile-detail">times the peer median: 4,080x against 1,348x</p></div>
+</div>
+<p class="why">Peers are measured on base-layer fees only. The first number (BASE+NET, 452x) also counts the application revenue NEAR captures through Intents, which no peer gets for its own applications; the second (BASE, 4,080x) is the like-for-like comparison. Below one, NEAR is valued below its typical peer. C1 fires above k = 1.00.</p>
+<ul class="chips"><li><a class="chip holds" href="#scorecard"><strong>C1</strong> Valuation · holds</a></li><li><a class="chip holds" href="#scorecard"><strong>C2</strong> Durability · holds</a></li><li><a class="chip holds" href="#scorecard"><strong>C3</strong> Capture rate · holds</a></li><li><a class="chip fires" href="#scorecard"><strong>C4</strong> Holder accrual · fires</a></li></ul>
+</div>
+</section>
+<header class="meta-block">
 <p class="meta">Data as of <time datetime="2026-11-10">10 Nov 2026</time> · trailing 365 days · <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/THESIS.md">the thesis</a> · <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers">code and data</a> · Data from <a href="https://defillama.com">DefiLlama</a> · Powered by <a href="https://www.coingecko.com">CoinGecko</a> · Not financial advice.</p>
 <p class="notice">The falsification thresholds (k, x, y, z) were frozen after these numbers were visible. The rationale for each one sits next to it in <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/config/panel.toml">config/panel.toml</a>.</p>
 </header>
+<section class="explainer" id="key-points">
+<h2>Key points to look at</h2>
+<p class="intro">Five questions a skeptical investor would ask, each answered from the data and linked to its evidence below.</p>
+<ol class="points"><li><h3>Like for like, how is NEAR valued?</h3><p>Peers are measured on base-layer fees only, while BASE+NET adds the application revenue NEAR captures through Intents; no peer gets the same credit for its own applications. Like for like, on base-layer fees alone, NEAR trades at 4,080x, 3.03 times the peer median: higher than every peer.</p><p class="more"><a href="#multiples">See the evidence</a></p></li><li><h3>Counting the revenue Intents brings, how is NEAR valued?</h3><p>Counting the Intents revenue its ecosystem captures (BASE+NET), NEAR trades at 452x, 0.34 times the peer median of 1,348x: below k = 1.00, so C1 holds. Holding NEAR&#x27;s market cap and the peer median fixed, C1 would fire only if trailing-year Intents net revenue fell below $2.36M, a drop of 75%. Counting only Intents revenue booked since the regime break, annualized, the ratio is 0.29 (384x): C1 holds on that reading too.</p><p class="more"><a href="#perimeters">See the evidence</a></p></li><li><h3>Is the Intents revenue durable?</h3><p>Intents net revenue rose 191%, from $1.74M over the prior 90-day window to $5.08M over the last one. C2 fires only on a drop larger than 50%: it holds. Over 30-day blocks, Intents net revenue went from $0.52M (16 Mar 2026 to 14 Apr 2026) to a peak of $2.22M (12 Sep 2026 to 11 Oct 2026); the latest block, $1.82M, is below that peak. The share of Intents fees NEAR keeps rose by a relative 38% (+7.48 points), from 19.59% over the prior 90-day window to 27.07% over the last one. C3 fires only on a drop larger than 25%: it holds.</p><p class="more"><a href="#intents">See the evidence</a></p></li><li><h3>Do NEAR holders capture that revenue?</h3><p>No burn or lock policy is published for the buyback account, which holds 2,250,000 NEAR; 12,000 NEAR have already left it. The bought-back NEAR can be spent again, so it is not provably held for holders: C4 fires, and the strict holder reading stays BASE (4,080x, 3.03 times the peer median). C4 has two tests: the policy test fires, while the outflow-share test alone passes (0.53% of the holdings, against z = 1%). Since the regime break (23 Feb 2026), Intents holders revenue equals net revenue every day: all of it funds buybacks. BASE+HOLDERS therefore differs from BASE+NET only by the $1.35M of net revenue booked before the break, which BASE+NET counts and BASE+HOLDERS does not. It is not a separate test of the buyback assumption.</p><p class="more"><a href="#buybacks">See the evidence</a></p></li><li><h3>How robust is the comparison?</h3><p>Across the panel itself and 7 variants (adding either candidate chain or dropping any one peer), the NEAR BASE+NET ratio moves from 0.32 to 0.51, and the C1 verdict stays the same in every one. The verdict depends on the perimeter, not on the panel: on BASE, like for like, the ratio is 3.03, above k, so C1 would fire on that reading. Aptos ranks 102 on CoinGecko on 10 Nov 2026, outside the rule&#x27;s top 30; it stays in the panel, which was frozen with the thresholds. Without it, the NEAR BASE+NET ratio is 0.32 and C1 holds.</p><p class="more"><a href="#variants">See the evidence</a></p></li></ol>
+</section>
+<section class="explainer" id="how">
+<h2>How the thesis is built</h2>
+<ol class="steps"><li><h3>Collect the data</h3><p>Daily fees and revenue come from DefiLlama, daily market caps and prices from CoinGecko. One snapshot is committed with the code and dated by the last day every series covers, so anyone can rebuild every figure offline.</p></li><li><h3>Compute a multiple for each chain</h3><p>Market cap divided by the fees paid over the trailing year. It reads like a price-to-sales ratio: how many dollars of market value the market assigns to each dollar of yearly fees. A lower multiple means the market pays less per dollar of activity.</p></li><li><h3>Compare NEAR with its peers</h3><p>The peers are chosen by a written rule, not by hand: smart-contract base chains with a DefiLlama fee series and a top CoinGecko rank. NEAR&#x27;s multiple is divided by the median of the peers&#x27; multiples. Below one, NEAR is valued below its typical peer.</p></li><li><h3>Decide which NEAR fees count</h3><p>Most of NEAR&#x27;s recent revenue comes from NEAR Intents, an application, not from base-layer gas. NEAR is therefore measured under four perimeters, from base-layer fees only to all Intents fees, and the thesis states which one it defends and why.</p></li><li><h3>Set tripwires in advance</h3><p>Four falsification criteria (C1 to C4) say what result would prove the thesis wrong. Their thresholds were frozen in a tagged commit, and every verdict on this page is computed from the data, never typed.</p></li><li><h3>Rebuild it yourself</h3><p>Run make judge-demo in the repository. It rebuilds the numbers, this page and THESIS.md from the snapshot and runs the tests, with nothing to install and no network.</p></li></ol>
+<h3>Terms used on this page</h3>
+<dl class="glossary"><dt>Multiple</dt><dd>Market cap divided by the fees of the trailing year.</dd><dt>Peer median</dt><dd>The middle value of the peers&#x27; multiples. NEAR and the candidate chains are left out of it.</dd><dt>Ratio to the peer median</dt><dd>NEAR&#x27;s multiple divided by the peer median. Below one, NEAR is valued below its typical peer; above one, above it.</dd><dt>Perimeter</dt><dd>A definition of which fees count as NEAR&#x27;s. BASE counts base-layer fees only, like for like with the peers. BASE+NET adds the Intents revenue NEAR&#x27;s ecosystem keeps: the defended reading. BASE+HOLDERS adds the Intents revenue booked as holders revenue. BASE+GROSS adds all Intents fees: an upper bound only.</dd><dt>NEAR Intents</dt><dd>A cross-chain swap service built on NEAR. Users pay fees, and part of them stays with NEAR&#x27;s ecosystem.</dd><dt>Regime break</dt><dd>The day from which DefiLlama books Intents revenue daily. Earlier data is not comparable, so the window-to-window tests start there.</dd><dt>Buyback</dt><dd>Intents revenue used to buy NEAR on the market. It reaches holders only if the NEAR bought is burned or locked.</dd><dt>Tripwire</dt><dd>A falsification criterion fixed in advance. If it fires, that part of the thesis is wrong.</dd></dl>
+</section>
+<h2 class="part" id="evidence">The evidence</h2>
+<p class="intro">Each section shows one piece of evidence: a sentence on what it says, the chart or table, the method and the source.</p>
 <section class="chart" id="scorecard">
 <h2>Falsification scorecard</h2>
-<p class="takeaway">C1, C2, C3 hold; C4 fires. The data supports the valuation on captured revenue, not yet on holder value: a C4 that fires means the bought-back NEAR is not provably held for holders.</p>
-<div class="table"><table><thead><tr><th>Criterion</th><th>Claim and formula</th><th>Statistic</th><th>Threshold</th><th>Verdict</th></tr></thead><tbody><tr data-criterion="c1" data-verdict="holds"><td><strong>C1</strong> Valuation</td><td>NEAR BASE+NET is no more expensive than the peer median.<br><code>NEAR BASE+NET multiple / median(peer multiples) &gt; k (trailing 365 days)</code></td><td>0.34</td><td>k = 1.00</td><td><span class="badge holds">holds</span></td></tr><tr data-criterion="c2" data-verdict="holds"><td><strong>C2</strong> Durability</td><td>Intents net revenue does not collapse from one window to the next.<br><code>Intents net revenue, last 90 days &lt; (1 - x) * prior 90 days (data after regime_break)</code></td><td>+191%</td><td>x = 0.50</td><td><span class="badge holds">holds</span></td></tr><tr data-criterion="c3" data-verdict="holds"><td><strong>C3</strong> Capture rate</td><td>NEAR keeps its share of Intents fees.<br><code>net / gross, last 90 days &lt; (1 - y) * prior 90 days (data after regime_break)</code></td><td>+38%</td><td>y = 0.25</td><td><span class="badge holds">holds</span></td></tr><tr data-criterion="c4" data-verdict="fires"><td><strong>C4</strong> Holder accrual</td><td>Bought-back NEAR provably stays out of circulation.<br><code>outflows from the buyback account &gt; z% of holdings, or no burn/lock policy</code></td><td>0.53%</td><td>z = 1%</td><td><span class="badge fires">fires</span></td></tr></tbody></table></div>
+<p class="takeaway">C1, C2, C3 hold; C4 fires. A C4 that fires means the bought-back NEAR is not provably held for holders, so the strict holder reading stays BASE.</p>
+<div class="table"><table><thead><tr><th>Criterion</th><th>Claim and formula</th><th>Statistic</th><th>Threshold</th><th>Verdict</th><th>Distance to firing</th><th>If it fires</th></tr></thead><tbody><tr data-criterion="c1" data-verdict="holds"><td><strong>C1</strong> Valuation</td><td>NEAR BASE+NET is no more expensive than the peer median.<br><code>NEAR BASE+NET multiple / median(peer multiples) &gt; k (trailing 365 days)</code></td><td>0.34</td><td>k = 1.00</td><td><span class="badge holds">holds</span></td><td>Intents net revenue would have to fall 75%</td><td>Even counting Intents, NEAR is not valued below its peers: the valuation case fails.</td></tr><tr data-criterion="c2" data-verdict="holds"><td><strong>C2</strong> Durability</td><td>Intents net revenue does not collapse from one window to the next.<br><code>Intents net revenue, last 90 days &lt; (1 - x) * prior 90 days (data after regime_break)</code></td><td>+191%</td><td>x = 0.50</td><td><span class="badge holds">holds</span></td><td>Last-window net revenue below $0.87M</td><td>Intents revenue is not durable: the captured-revenue reading loses its base.</td></tr><tr data-criterion="c3" data-verdict="holds"><td><strong>C3</strong> Capture rate</td><td>NEAR keeps its share of Intents fees.<br><code>net / gross, last 90 days &lt; (1 - y) * prior 90 days (data after regime_break)</code></td><td>+38%</td><td>y = 0.25</td><td><span class="badge holds">holds</span></td><td>Last-window share below 14.69%</td><td>NEAR&#x27;s cut of Intents fees is being competed away.</td></tr><tr data-criterion="c4" data-verdict="fires"><td><strong>C4</strong> Holder accrual</td><td>Bought-back NEAR provably stays out of circulation.<br><code>outflows from the buyback account &gt; z% of holdings, or no burn/lock policy</code></td><td>0.53%</td><td>z = 1%</td><td><span class="badge fires">fires</span></td><td>Policy test fires; outflow-share test holds</td><td>Holders do not provably capture the revenue: the strict holder reading is BASE.</td></tr></tbody></table></div>
 <p class="method"><strong>Method.</strong> Each criterion is a tripwire: if it fires, that part of the thesis is wrong. The thresholds were frozen in one tagged commit (thresholds-frozen) after these numbers were visible and before the thesis was written.</p>
 <p class="source"><strong>Source.</strong> Formulas and thresholds in <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/config/panel.toml">config/panel.toml</a>.</p>
 </section>
