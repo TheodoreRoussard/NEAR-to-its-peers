@@ -103,19 +103,20 @@ def link(url, text):
 
 
 def verdict_badge(verdict):
-    return f'<span class="badge {e(verdict)}">{e(verdict)}</span>'
+    return f'<span class="verdict {e(verdict)}">{e(verdict)}</span>'
 
 
 def section(anchor, title, body, source, method, takeaway):
-    return (f'<section class="chart" id="{e(anchor)}">\n<h2>{e(title)}</h2>\n'
-            f'<p class="takeaway">{takeaway}</p>\n{body}\n'
+    return (f'<section class="chart" id="{e(anchor)}">\n<h3>{e(title)}</h3>\n<figure>\n'
+            f'<figcaption><span class="fig-label">Figure</span> '
+            f'<span class="takeaway">{takeaway}</span></figcaption>\n{body}\n</figure>\n'
             f'<p class="method"><strong>Method.</strong> {method}</p>\n'
             f'<p class="source"><strong>Source.</strong> {source}</p>\n</section>')
 
 
-def table(head, rows, attrs=None):
+def table(head, rows, attrs=None, wide=False):
     attrs = attrs or [""] * len(rows)
-    out = ["<div class=\"table\"><table><thead><tr>"]
+    out = [f'<div class="table{" wide" if wide else ""}"><table><thead><tr>']
     out += [f"<th>{h}</th>" for h in head]
     out.append("</tr></thead><tbody>")
     for row, attr in zip(rows, attrs):
@@ -154,7 +155,7 @@ def multiples_chart(metrics):
         return '<p class="empty">not enough data</p>'
     lo = 10 ** math.floor(math.log10(min(r[1] for r in rows)))
     hi = 10 ** math.ceil(math.log10(max(r[1] for r in rows)))
-    label_w, plot_w, row_h, top = 150, 520, 28, 24
+    label_w, plot_w, row_h, top = 172, 500, 28, 24
     height = top + row_h * len(rows) + 8
     out = [f'<div class="plot"><svg viewBox="0 0 {label_w + plot_w + 70} {height}" role="img" '
            f'aria-label="Multiples by chain, log scale">']
@@ -171,17 +172,17 @@ def multiples_chart(metrics):
         out.append(f'<text class="label {kind}" x="{label_w - 8}" y="{y + 18}" '
                    f'text-anchor="end">{e(label)}</text>'
                    f'<rect class="bar {kind}" x="{label_w}" y="{y + 5}" width="{px(w)}" '
-                   f'height="{row_h - 10}" rx="2"><title>{e(label)}: {fmt_multiple(value)}'
+                   f'height="{row_h - 10}" rx="1"><title>{e(label)}: {fmt_multiple(value)}'
                    f'</title></rect>'
                    f'<text class="value" x="{px(label_w + w + 6)}" y="{y + 18}">'
                    f'{fmt_multiple(value)}</text>')
     median_x = label_w + log_position(metrics["peer_median_multiple"], lo, hi, plot_w)
     out.append(f'<line class="median" x1="{px(median_x)}" y1="{top - 2}" x2="{px(median_x)}" '
                f'y2="{height}"/></svg></div>')
-    out.append(f'<p class="legend"><span class="key near"></span>NEAR perimeter '
-               f'<span class="key upper"></span>NEAR BASE+GROSS (upper bound only) '
-               f'<span class="key peer"></span>Peer <span class="key median"></span>'
-               f'Peer median {fmt_multiple(metrics["peer_median_multiple"])}</p>')
+    out.append(f'<p class="legend"><span class="key near"></span>NEAR, by perimeter'
+               f'<span class="key upper"></span>NEAR BASE+GROSS, upper bound only'
+               f'<span class="key peer"></span>Peer<span class="key median"></span>'
+               f'Peer median, {fmt_multiple(metrics["peer_median_multiple"])}</p>')
     return "".join(out)
 
 
@@ -207,7 +208,7 @@ def variants_chart(metrics):
         return '<p class="empty">not enough data</p>'
     k = metrics["falsification"]["c1"]["threshold"]
     top_value = max([v["near_base_net_ratio"] for v in variants] + ([k] if k else []))
-    label_w, plot_w, row_h, top = 150, 520, 28, 24
+    label_w, plot_w, row_h, top = 172, 500, 28, 24
     scale = plot_w / (top_value * 1.15)
     height = top + row_h * len(variants) + 8
     out = [f'<div class="plot"><svg viewBox="0 0 {label_w + plot_w + 70} {height}" role="img" '
@@ -219,7 +220,7 @@ def variants_chart(metrics):
         out.append(f'<text class="label" x="{label_w - 8}" y="{y + 18}" text-anchor="end">'
                    f'{e(v["label"])}</text>'
                    f'<rect class="bar {kind}" x="{label_w}" y="{y + 5}" width="{px(w)}" '
-                   f'height="{row_h - 10}" rx="2"><title>{e(v["label"])}: '
+                   f'height="{row_h - 10}" rx="1"><title>{e(v["label"])}: '
                    f'{fmt_ratio(v["near_base_net_ratio"])}</title></rect>'
                    f'<text class="value" x="{px(label_w + w + 6)}" y="{y + 18}">'
                    f'{fmt_ratio(v["near_base_net_ratio"])}</text>')
@@ -270,10 +271,10 @@ def intents_chart(metrics):
         gross_h = b["gross"] / peak * plot_h
         net_h = b["net"] / peak * plot_h
         out.append(f'<rect class="bar gross" x="{px(x)}" y="{px(base_y - gross_h)}" '
-                   f'width="{px(w)}" height="{px(gross_h)}" rx="2"><title>Fees '
+                   f'width="{px(w)}" height="{px(gross_h)}" rx="1"><title>Fees '
                    f'{fmt_usd(b["gross"])}</title></rect>'
                    f'<rect class="bar near" x="{px(x + w * 0.2)}" y="{px(base_y - net_h)}" '
-                   f'width="{px(w * 0.6)}" height="{px(net_h)}" rx="2"><title>Net revenue '
+                   f'width="{px(w * 0.6)}" height="{px(net_h)}" rx="1"><title>Net revenue '
                    f'{fmt_usd(b["net"])}</title></rect>'
                    f'<text class="value" x="{px(x + w / 2)}" y="{px(base_y - gross_h - 6)}" '
                    f'text-anchor="middle">{fmt_usd(b["net"])}</text>'
@@ -283,7 +284,7 @@ def intents_chart(metrics):
                    f'text-anchor="middle">{fmt_short_day(b["end"])}</text>')
     out.append("</svg></div>")
     out.append('<p class="legend"><span class="key near"></span>Net revenue kept by NEAR '
-               '(label) <span class="key gross"></span>Gross Intents fees</p>')
+               '(labelled)<span class="key gross"></span>Gross Intents fees</p>')
     return "".join(out)
 
 
@@ -330,7 +331,7 @@ def buyback_card(metrics):
              ("Outflow share", fmt_percent(c4["statistic"])),
              ("Burn or lock policy", e(c4["policy"])),
              ("Checked on", fmt_day(c4["checked_on"]))]
-    return ('<dl class="card">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in items)
+    return ('<dl class="facts">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in items)
             + "</dl>")
 
 
@@ -357,14 +358,14 @@ def scorecard(metrics):
     rows, attrs = [], []
     for key, criterion in metrics["falsification"].items():
         code, name, claim = CRITERIA[key]
-        rows.append([f"<strong>{code}</strong> {e(name)}",
-                     f"{e(claim)}<br><code>{e(criterion['formula'])}</code>",
+        rows.append([f"<strong>{code} {e(name)}</strong><br>{e(claim)}<br>"
+                     f"<code>{e(criterion['formula'])}</code>",
                      statistic_text(key, criterion), threshold_text(key, criterion),
                      verdict_badge(criterion["verdict"]), e(n.margin_short(metrics, key)),
                      e(n.CONSEQUENCES[key])])
         attrs.append(f' data-criterion="{e(key)}" data-verdict="{e(criterion["verdict"])}"')
-    return table(["Criterion", "Claim and formula", "Statistic", "Threshold", "Verdict",
-                  "Distance to firing", "If it fires"], rows, attrs)
+    return table(["Criterion, claim and formula", "Statistic", "Threshold", "Verdict",
+                  "Distance to firing", "If it fires"], rows, attrs, wide=True)
 
 
 def scorecard_takeaway(metrics):
@@ -384,37 +385,30 @@ def scorecard_takeaway(metrics):
 
 # ---------- the thesis, the key points and the method, before the evidence ----------
 
-def tile(label, ratio, detail):
-    return (f'<div class="tile"><p class="tile-label">{e(label)}</p>'
-            f'<p class="tile-value">{fmt_ratio(ratio)}&times;</p>'
-            f'<p class="tile-detail">{detail}</p></div>')
-
-
-def hero(metrics, v):
+def abstract(metrics, v):
     near, median = metrics["near_perimeters"], fmt_multiple(metrics["peer_median_multiple"])
-    chips = "".join(
-        f'<li><a class="chip {e(c["verdict"])}" href="#scorecard">'
-        f'<strong>{CRITERIA[key][0]}</strong> {e(CRITERIA[key][1])} · {e(c["verdict"])}</a></li>'
+    readings = table(
+        ["Reading", "NEAR multiple", "Peer median", "Ratio to the peer median"],
+        [["Counting Intents revenue (BASE+NET)", fmt_multiple(near["BASE+NET"]["multiple"]),
+          median, f'<strong>{fmt_ratio(near["BASE+NET"]["ratio_to_peer_median"])}</strong>'],
+         ["Like for like, base-layer fees only (BASE)", fmt_multiple(near["BASE"]["multiple"]),
+          median, f'<strong>{fmt_ratio(near["BASE"]["ratio_to_peer_median"])}</strong>']])
+    verdicts = ", ".join(
+        f'{CRITERIA[key][0]} {e(CRITERIA[key][1].lower())} {verdict_badge(c["verdict"])}'
         for key, c in metrics["falsification"].items())
     k = metrics["falsification"]["c1"]["threshold"]
     k_text = "" if k is None else f" C1 fires above k = {fmt_ratio(k)}."
-    return f"""<section class="hero" id="thesis">
-<p class="kicker">NEAR Hackathon · Investment Thesis track</p>
+    return f"""<header class="masthead" id="thesis">
 <h1>NEAR Against Its Peers</h1>
-<p class="lede">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
-<div class="answer">
-<h2>The thesis</h2>
-<p class="bottom-line">{e(n.bottom_line(metrics, v))}</p>
-<div class="tiles">
-{tile("Counting Intents revenue (BASE+NET)", near["BASE+NET"]["ratio_to_peer_median"],
-      f"times the peer median: {fmt_multiple(near['BASE+NET']['multiple'])} against {median}")}
-{tile("Like for like, base-layer fees only (BASE)", near["BASE"]["ratio_to_peer_median"],
-      f"times the peer median: {fmt_multiple(near['BASE']['multiple'])} against {median}")}
-</div>
-<p class="why">{e(v["like_for_like_short"])} Below one, NEAR is valued below its typical peer.{k_text}</p>
-<ul class="chips">{chips}</ul>
-</div>
-</section>"""
+<p class="subtitle">For each dollar of fees paid on-chain, does the market value NEAR more or less than its peers? And which perimeter that includes NEAR Intents can be defended?</p>
+<p class="byline">Théo Roussard · NEAR Hackathon, Investment Thesis track · Data as of <time datetime="{e(metrics["as_of"])}">{fmt_day(metrics["as_of"])}</time> · Not financial advice</p>
+<section class="abstract">
+<p><span class="runin">Abstract.</span> <span class="bottom-line">{e(n.bottom_line(metrics, v))}</span></p>
+<div class="readings">{readings}</div>
+<p class="note">{e(v["like_for_like_short"])} A ratio below one means NEAR is valued below its typical peer.{k_text}</p>
+<p class="verdicts"><span class="runin">Verdicts.</span> {verdicts}.</p>
+</section>
+</header>"""
 
 
 def key_points(metrics, v):
@@ -425,30 +419,30 @@ def key_points(metrics, v):
         " ".join((v["c4_claim"], holders_note(metrics))),
         " ".join((n.variants_sentence(metrics), rank_note(metrics))),
     ]
-    items = "".join(f'<li><h3>{e(title)}</h3><p>{e(body)}</p>'
-                    f'<p class="more"><a href="#{anchor}">See the evidence</a></p></li>'
+    items = "".join(f'<li><h3>{e(title)}</h3><p>{e(body)} '
+                    f'<a class="more" href="#{anchor}">See the evidence</a></p></li>'
                     for (title, anchor), body in zip(KEY_POINT_TITLES, bodies))
-    return (f'<section class="explainer" id="key-points">\n<h2>Key points to look at</h2>\n'
+    return (f'<section class="explainer" id="key-points">\n<h2>Key findings</h2>\n'
             f'<p class="intro">Five questions a skeptical investor would ask, each answered from '
-            f'the data and linked to its evidence below.</p>\n<ol class="points">{items}</ol>\n'
+            f'the data and linked to its evidence.</p>\n<ol class="points">{items}</ol>\n'
             f'</section>')
 
 
 def how_it_works():
     steps = "".join(f"<li><h3>{e(title)}</h3><p>{e(text)}</p></li>" for title, text in HOW_STEPS)
     terms = "".join(f"<dt>{e(term)}</dt><dd>{e(text)}</dd>" for term, text in GLOSSARY)
-    return (f'<section class="explainer" id="how">\n<h2>How the thesis is built</h2>\n'
-            f'<ol class="steps">{steps}</ol>\n<h3>Terms used on this page</h3>\n'
+    return (f'<section class="explainer" id="how">\n<h2>Method</h2>\n'
+            f'<ol class="steps">{steps}</ol>\n<h3>Terms</h3>\n'
             f'<dl class="glossary">{terms}</dl>\n</section>')
 
 
 def toc():
-    links = [("thesis", "The thesis"), ("key-points", "Key points"), ("how", "How it works"),
+    links = [("key-points", "Key findings"), ("how", "Method"), ("evidence", "Evidence"),
              ("scorecard", "Scorecard"), ("multiples", "Multiples"), ("perimeters", "Perimeters"),
-             ("variants", "Panel"), ("intents", "Intents revenue"), ("capture", "Capture rate"),
-             ("buybacks", "Buybacks"), ("float", "Dilution")]
-    return ('<nav class="toc" aria-label="On this page">'
-            + "".join(f'<a href="#{a}">{e(t)}</a>' for a, t in links) + "</nav>")
+             ("variants", "Panel"), ("intents", "Intents revenue"), ("buybacks", "Buybacks"),
+             ("float", "Dilution")]
+    return ('<nav class="contents" aria-label="Contents"><span class="runin">Contents.</span> '
+            + " · ".join(f'<a href="#{a}">{e(t)}</a>' for a, t in links) + "</nav>")
 
 
 def perimeters_table(metrics):
@@ -484,80 +478,110 @@ def float_takeaway(metrics):
 # ---------- page ----------
 
 STYLE = """
-:root{--bg:#fbfaf7;--panel:#ffffff;--text:#1d1d1b;--muted:#6b6a65;--line:#e4e1d8;
---near:#0f7b6c;--near-soft:#9fd3c7;--peer:#b8b4a8;--gross:#e6e1d3;--median:#b5452b;
---holds:#0f7b6c;--fires:#b5452b;--pending:#8a6d1f}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141413;--panel:#1d1d1b;
---text:#ecebe6;--muted:#a19f97;--line:#34332f;--near:#3fbfa8;--near-soft:#1f5d53;--peer:#5d5b55;
---gross:#3a3833;--median:#e07a5f;--holds:#3fbfa8;--fires:#e07a5f;--pending:#d4b45a}}
-:root[data-theme="dark"]{--bg:#141413;--panel:#1d1d1b;--text:#ecebe6;--muted:#a19f97;
---line:#34332f;--near:#3fbfa8;--near-soft:#1f5d53;--peer:#5d5b55;--gross:#3a3833;
---median:#e07a5f;--holds:#3fbfa8;--fires:#e07a5f;--pending:#d4b45a}
+:root{color-scheme:light;--bg:#fbfaf7;--ink:#1b1b19;--ink-2:#4f4d48;--muted:#6b6962;
+--rule:#dcd8ce;--accent:#1f5fae;--peer:#8c897f;--gross:#c9c5ba;--ref:#c4501f;
+--holds:#2f7d32;--fires:#b3261e;--pending:#8a6d1f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;
+--bg:#161615;--ink:#ecebe6;--ink-2:#bdbbb3;--muted:#9a978f;--rule:#34332f;--accent:#4a8ad6;
+--peer:#7a776f;--gross:#46443f;--ref:#d4683a;--holds:#5fae63;--fires:#e0675e;--pending:#d4b45a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#161615;--ink:#ecebe6;--ink-2:#bdbbb3;
+--muted:#9a978f;--rule:#34332f;--accent:#4a8ad6;--peer:#7a776f;--gross:#46443f;--ref:#d4683a;
+--holds:#5fae63;--fires:#e0675e;--pending:#d4b45a}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);
-font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-main{max-width:960px;margin:0 auto;padding:32px 16px 64px}
-h1{font-size:2rem;margin:0 0 8px}h2{font-size:1.2rem;margin:0 0 8px}
-.lede{font-size:1.1rem;color:var(--muted);margin:0 0 12px}
-.meta,.method,.source,.legend{color:var(--muted);font-size:.9rem}
-.notice{border-left:3px solid var(--pending);padding:8px 12px;background:var(--panel);margin:16px 0}
-section.chart{background:var(--panel);border:1px solid var(--line);border-radius:8px;
-padding:20px;margin:20px 0}
-.takeaway{font-size:1.02rem}
-.plot{overflow-x:auto;margin:8px 0}svg{width:100%;min-width:560px;height:auto;display:block}
-svg text{fill:var(--text);font-size:12px}svg .axis{fill:var(--muted);font-size:11px}
-.bar.near{fill:var(--near)}.bar.upper{fill:var(--near-soft)}.bar.peer{fill:var(--peer)}
-.bar.gross{fill:var(--gross)}
-.label.near,.label.upper{font-weight:600}
-.grid{stroke:var(--line)}.median,.threshold{stroke:var(--median);stroke-width:2;stroke-dasharray:5 4}
-.key{display:inline-block;width:12px;height:12px;border-radius:2px;margin:0 4px 0 12px;
-vertical-align:-1px}.key.near{background:var(--near)}.key.upper{background:var(--near-soft)}
-.key.peer{background:var(--peer)}.key.gross{background:var(--gross)}
-.key.median{background:var(--median);height:3px;vertical-align:3px}
-.table{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem}
-th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--muted);font-weight:600}code{font-size:.8rem;color:var(--muted)}
-.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:.8rem;font-weight:600;
-color:var(--panel)}.badge.holds{background:var(--holds)}.badge.fires{background:var(--fires)}
-.badge.pending{background:var(--pending)}
-dl.card{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:8px 0}
-dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
-a{color:var(--near)}footer{color:var(--muted);font-size:.9rem;margin-top:32px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.62;
+font-family:"Iowan Old Style","Charter","Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
+font-variant-numeric:lining-nums;counter-reset:section figure}
+main{max-width:44rem;margin:0 auto;padding:0 16px}
+::selection{background:var(--accent);color:var(--bg)}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:.18em}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+p{margin:0 0 .9em}
+p,li,dd,figcaption{max-width:68ch;text-wrap:pretty}
+h1{font-size:2.7rem;line-height:1.08;font-weight:600;letter-spacing:-.015em;margin:.7em 0 .3em;
+text-wrap:balance}
+.subtitle{font-size:1.22rem;line-height:1.45;font-style:italic;color:var(--ink-2);margin:0 0 1.1em;
+text-wrap:balance}
+.byline,.runin,.fig-label,.method strong,.source strong,th{font-variant-caps:all-small-caps;
+letter-spacing:.045em}
+.byline{color:var(--muted);font-size:1.02rem;margin:0 0 1.4em}
+.runin{font-weight:700;margin-right:.25em}
+.abstract{margin-top:.4em}
+.bottom-line{font-size:1.08rem}
+.note{font-size:.9rem;color:var(--ink-2);line-height:1.55}
+.frame-note{color:var(--muted);margin-bottom:.8em}
+.contents{font-size:.92rem;line-height:1.9;color:var(--muted)}
+.contents a{white-space:nowrap}
+h2{font-size:1.5rem;line-height:1.25;font-weight:600;margin:1.9em 0 .5em;
+counter-increment:section}
+h2::before{content:counter(section) ".";margin-right:.5em;color:var(--muted);font-weight:400}
+h3{font-size:1.14rem;line-height:1.3;font-weight:600;margin:1.6em 0 .4em}
+.intro{color:var(--ink-2)}
+ol.points,ol.steps{margin:0;padding-left:1.7em}
+ol.points>li,ol.steps>li{margin:0 0 .9em;padding-left:.2em}
+ol.points>li::marker,ol.steps>li::marker{color:var(--muted);font-weight:600}
+li>h3{font-size:1.05rem;margin:0 0 .2em}
+li>p{margin:0}
+.more{white-space:nowrap;font-size:.92rem}
+dl.glossary{margin:.4em 0 0}
+dl.glossary dt{font-weight:600;margin-top:.7em}
+dl.glossary dd{margin:0;color:var(--ink-2)}
+section.chart{margin:0}
+figure{margin:0;counter-increment:figure}
+figcaption{margin:0 0 .7em;line-height:1.55}
+.fig-label{font-weight:700}
+.fig-label::after{content:" " counter(figure) "."}
+.method,.source,.legend{font-size:.84rem;line-height:1.5;color:var(--muted);margin:.45em 0}
+.method strong,.source strong{color:var(--ink-2);font-weight:700}
+.legend{margin-top:.2em}
+.plot{overflow-x:auto;margin:.3em 0}
+svg{width:100%;min-width:560px;height:auto;display:block}
+svg text{fill:var(--ink);font-family:inherit;font-size:12.5px;font-variant-numeric:tabular-nums}
+svg .axis{fill:var(--muted);font-size:11.5px}
+.bar.near{fill:var(--accent)}
+.bar.upper{fill:none;stroke:var(--accent);stroke-width:1.25}
+.bar.peer{fill:var(--peer)}
+.bar.gross{fill:var(--gross);stroke:var(--peer);stroke-width:1}
+.label.near,.label.upper{font-weight:700}
+.grid{stroke:var(--rule);stroke-width:1}
+.median,.threshold{stroke:var(--ref);stroke-width:1.5;stroke-dasharray:4 3}
+.key{display:inline-block;width:10px;height:10px;margin:0 .4em 0 1.1em;vertical-align:-.05em}
+.key:first-child{margin-left:0}
+.key.near{background:var(--accent)}.key.upper{border:1.25px solid var(--accent)}
+.key.peer{background:var(--peer)}.key.gross{background:var(--gross);border:1px solid var(--peer)}
+.key.median{width:14px;height:0;border-top:1.5px dashed var(--ref);vertical-align:.3em}
+.table{overflow-x:auto;margin:.4em 0 .6em}
+table{border-collapse:collapse;width:100%;font-size:.86rem;line-height:1.45;
+font-variant-numeric:tabular-nums lining-nums}
+th{text-align:left;font-weight:700;color:var(--ink-2);padding:.4em .5em .3em;
+border-bottom:1px solid var(--rule);vertical-align:bottom}
+td{padding:.35em .5em;vertical-align:top}
+th:first-child,td:first-child{padding-left:0}
+th:last-child,td:last-child{padding-right:0}
+.table.wide{width:min(62rem,calc(100vw - 40px));
+margin-left:calc((100% - min(62rem,calc(100vw - 40px))) / 2)}
+.table.wide td:first-child{min-width:17rem}
+.readings th:not(:first-child),.readings td:not(:first-child){text-align:right}
+code{font-family:inherit;font-size:.92em;font-style:italic;color:var(--ink-2)}
+.verdict{font-variant-caps:all-small-caps;letter-spacing:.05em;font-weight:700;white-space:nowrap}
+.verdict::before{content:"";display:inline-block;width:.5em;height:.5em;margin-right:.3em;
+background:currentColor;vertical-align:.08em}
+.verdict.holds{color:var(--holds)}.verdict.fires{color:var(--fires)}
+.verdict.pending{color:var(--pending)}
+dl.facts{display:grid;grid-template-columns:max-content 1fr;gap:.3em 1.4em;margin:.4em 0;
+font-size:.95rem;
+font-variant-numeric:tabular-nums}
+dl.facts dt{color:var(--ink-2)}dl.facts dd{margin:0;overflow-wrap:anywhere}
 .empty{color:var(--muted);font-style:italic}
-.toc{position:sticky;top:0;z-index:2;display:flex;gap:6px 14px;flex-wrap:wrap;padding:10px 0;
-background:var(--bg);border-bottom:1px solid var(--line);font-size:.85rem}
-.toc a{color:var(--muted);text-decoration:none}.toc a:hover{color:var(--near)}
-.hero{padding:28px 0 8px}.kicker{color:var(--near);font-weight:600;font-size:.85rem;
-letter-spacing:.04em;text-transform:uppercase;margin:0 0 6px}
-.answer{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--near);
-border-radius:8px;padding:20px;margin:16px 0}
-.bottom-line{font-size:1.12rem;line-height:1.6;margin:0 0 16px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 12px}
-.tile{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--bg)}
-.tile-label{margin:0;color:var(--muted);font-size:.85rem;font-weight:600}
-.tile-value{margin:4px 0;font-size:2.2rem;font-weight:700;line-height:1.1}
-.tile-detail{margin:0;color:var(--muted);font-size:.85rem}
-.why{color:var(--muted);font-size:.92rem}
-.chips{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-block;padding:4px 12px;border-radius:14px;font-size:.85rem;
-text-decoration:none;color:var(--panel)}.chip.holds{background:var(--holds)}
-.chip.fires{background:var(--fires)}.chip.pending{background:var(--pending)}
-.meta-block{margin:0 0 8px}
-section.explainer{margin:28px 0}.intro{color:var(--muted)}
-ol.points,ol.steps{padding-left:0;list-style:none;counter-reset:item}
-ol.points>li,ol.steps>li{counter-increment:item;background:var(--panel);border:1px solid var(--line);
-border-radius:8px;padding:16px 16px 16px 56px;margin:12px 0;position:relative}
-ol.points>li::before,ol.steps>li::before{content:counter(item);position:absolute;left:16px;top:16px;
-width:28px;height:28px;border-radius:50%;background:var(--near);color:var(--panel);
-font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.9rem}
-ol.points h3,ol.steps h3{margin:2px 0 6px;font-size:1.02rem}ol.points p,ol.steps p{margin:0 0 6px}
-.more{font-size:.88rem}
-dl.glossary{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:8px 16px}
-dl.glossary dt{font-weight:600;color:var(--text)}
-@media (max-width:560px){dl.glossary{grid-template-columns:1fr}dl.glossary dd{margin-bottom:8px}}
-h2.part{font-size:1.5rem;margin:40px 0 4px}
-[id]{scroll-margin-top:52px}
-@media (max-width:560px){.toc{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}}
+footer{margin:2.4em 0 1.6em;font-size:.84rem;
+line-height:1.55;color:var(--muted)}
+[id]{scroll-margin-top:16px}
+@media (max-width:560px){body{font-size:16px}
+h1{font-size:2.05rem}.subtitle{font-size:1.08rem}
+dl.facts{grid-template-columns:1fr;gap:0}dl.facts dd{margin-bottom:.45em}}
+@media print{body{background:#fff;color:#000}main{max-width:none}
+.plot{overflow:visible}svg{min-width:0}section.chart{break-inside:avoid}}
 """
 
 
@@ -596,21 +620,16 @@ def render(metrics):
                 f"'+ X' adds a candidate chain to the peers ({candidates}); '- X' drops one "
                 f"peer. C1 fires to the right of k.",
                 variants_takeaway(metrics)),
-        section("intents", "NEAR Intents revenue since the regime break", intents_chart(metrics)
+        section("intents", "NEAR Intents revenue, and the share NEAR keeps", intents_chart(metrics)
                 + table(["Window", "Dates", "Net revenue", "Gross fees", "Net / gross"],
                         c2_windows),
                 intents_sources(metrics),
                 f"Whole windows ending on {fmt_day(as_of)}, none before "
                 f"{fmt_day(metrics['intents']['regime_break'])}: revenue is booked daily only "
-                f"since then, so earlier data is not comparable. C2 compares the last window "
-                f"with the prior one.",
-                intents_takeaway(metrics)),
-        section("capture", "How much of Intents fees NEAR keeps", table(
-                ["Window", "Dates", "Net / gross"], [[r[0], r[1], r[4]] for r in c2_windows]),
-                intents_sources(metrics),
-                "Net / gross = Intents revenue kept by NEAR divided by all Intents fees, per "
-                "window. C3 compares the last window with the prior one.",
-                capture_takeaway(metrics)),
+                f"since then, so earlier data is not comparable. C2 compares the last window's "
+                f"net revenue with the prior one's; C3 compares their net / gross shares, the "
+                f"part of Intents fees NEAR keeps.",
+                intents_takeaway(metrics) + " " + capture_takeaway(metrics)),
         section("buybacks", "Do the buybacks reach holders?", buyback_card(metrics),
                 f"On-chain account: {link(metrics['falsification']['c4']['source'], 'nearblocks')}.",
                 "Outflows are transfers out of the buyback account since the first buyback. "
@@ -633,19 +652,18 @@ def render(metrics):
 </head>
 <body>
 <main>
+{abstract(metrics, v)}
+<p class="note frame-note">The falsification thresholds (k, x, y, z) were frozen after these numbers were visible; the rationale for each one sits next to it in {link(CONFIG_URL, 'config/panel.toml')}. Trailing window: {days} days. The full text is {link(THESIS_URL, 'THESIS.md')}; the code and data are on {link(REPO, 'GitHub')}. Data from <a href="https://defillama.com">DefiLlama</a>. Powered by <a href="https://www.coingecko.com">CoinGecko</a>.</p>
 {toc()}
-{hero(metrics, v)}
-<header class="meta-block">
-<p class="meta">Data as of <time datetime="{e(as_of)}">{fmt_day(as_of)}</time> · trailing {days} days · {link(THESIS_URL, 'the thesis')} · {link(REPO, 'code and data')} · Data from <a href="https://defillama.com">DefiLlama</a> · Powered by <a href="https://www.coingecko.com">CoinGecko</a> · Not financial advice.</p>
-<p class="notice">The falsification thresholds (k, x, y, z) were frozen after these numbers were visible. The rationale for each one sits next to it in {link(CONFIG_URL, 'config/panel.toml')}.</p>
-</header>
 {key_points(metrics, v)}
 {how_it_works()}
-<h2 class="part" id="evidence">The evidence</h2>
-<p class="intro">Each section shows one piece of evidence: a sentence on what it says, the chart or table, the method and the source.</p>
+<section class="evidence" id="evidence">
+<h2>Evidence</h2>
+<p class="intro">Each figure states what it shows in its caption, then the chart or table, the method and the source.</p>
 {chr(10).join(sections)}
+</section>
 <footer>
-<p>Fees and revenue: <a href="https://defillama.com">DefiLlama</a>. Market caps and prices: Powered by <a href="https://www.coingecko.com">CoinGecko</a>. Buyback account: nearblocks. The data belongs to its providers and is not covered by the code license (see <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/data/README.md">data/README.md</a>). Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>
+<p><span class="runin">Data and credits.</span> Fees and revenue: <a href="https://defillama.com">DefiLlama</a>. Market caps and prices: Powered by <a href="https://www.coingecko.com">CoinGecko</a>. Buyback account: nearblocks. The data belongs to its providers and is not covered by the code license (see <a href="https://github.com/TheodoreRoussard/NEAR-to-its-peers/blob/main/data/README.md">data/README.md</a>). Rebuild everything offline with <code>make judge-demo</code>. Code under the MIT license. Not financial advice.</p>
 </footer>
 </main>
 </body>
