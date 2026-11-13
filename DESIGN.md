@@ -33,8 +33,8 @@ Accent and reference pass the dataviz validator in both modes (CVD ΔE ≥ 22, c
 
 Figures and tables are the only components.
 - Figure captions above the figure ("Figure n." in small caps, numbered by CSS counters so no digit is typed), the takeaway sentence as the caption text, then the figure, then "Method." and "Source." notes in small muted type.
-- Tables in booktabs style: ink rules above and below, a hairline under the header, no vertical rules, no fills, numbers right-aligned.
+- Tables without frame: no rules above or below, only a hairline under the column headers, no vertical rules, no fills, numbers right-aligned.
 - Charts: hairline gridlines, muted axis text, thin bars with 1px rounding, NEAR in the accent, peers grey, the upper-bound perimeter as an outlined bar, reference lines dashed in the reference colour with a direct label.
 
 ## Layout
-One centred column with no page padding beyond a 16px side gutter that keeps text off the screen edge on phones; spacing is tight (author, 2026-11-13). Sections numbered by CSS counters; the contents as an inline list after the abstract; a single hairline rule between major parts. Nothing sticky.
+One centred column with no page padding beyond a 16px side gutter that keeps text off the screen edge on phones; spacing is tight (author, 2026-11-13). Sections numbered by CSS counters; the contents as an inline list after the abstract; no rules between text and figures: spacing and headings alone separate them (author, 2026-11-13). Nothing sticky.
