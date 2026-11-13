@@ -12,6 +12,8 @@ The measure is a **multiple**: market cap divided by the fees summed over the tr
 
 {{bottom_line}}
 
+{{outlook}}
+
 > **Why two numbers.** {{like_for_like_short}}
 
 **Verdicts: {{verdict_summary}}** The evidence for each one follows.
@@ -81,7 +83,8 @@ The peer median ({{peer_median}}) uses the peers only, never NEAR or the candida
   - the split of Intents growth between volume and take rate;
   - NEAR's own front-end fees, separated from protocol fees.
 - **The valuation test is asymmetric.** {{c1}} compares NEAR with Intents against peers on base-layer fees only, because the peers' application revenue is not computed. A symmetric test would be a new criterion after the freeze, so it is left out rather than added after the fact.
-- **The buyback figures are hand-read.** The holdings and outflows behind {{c4}} were read on-chain on {{buyback_checked_on}} and recorded as sourced constants, not fetched by the pipeline.
+- **The buyback figures are hand-read and rounded.** The holdings and outflows behind {{c4}} were read on-chain on {{buyback_checked_on}} and recorded as rounded, sourced constants, not fetched by the pipeline. The account keeps buying, so its holdings grow after that date; the outflow share only falls as they do.
+- **No on-chain usage data.** The track brief points to the NEAR BigQuery dataset (active accounts, transactions) and the NEAR Intents Explorer API (swap volume). BigQuery queries are billed to a Google Cloud account and the Explorer API needs a partner token, which would break the keyless, offline, one-command rebuild. The thesis relies instead on DefiLlama's NEAR Intents revenue series, which DefiLlama states reconciles with revenue.near.org and the on-chain buyback. Usage data would explain where that revenue comes from, the volume and take-rate split listed above; it would not change the valuation measured here.
 - **No multiple over time.** A trailing-year multiple needs two years of daily data, and CoinGecko's free API serves one; the thesis therefore rests on a single date.
 - **Ethereum's fees exclude its rollups**, which understates the activity Ethereum anchors.
 - **Intents looks more like a cross-chain exchange than a blockchain.** A second panel of cross-chain venues would test BASE+NET from another angle.

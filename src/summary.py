@@ -54,12 +54,13 @@ def form_text(m):
         "NEAR Against Its Peers is a reproducible investment thesis on NEAR.",
         f"It compares NEAR's market cap per dollar of on-chain fees with "
         f"{len(m['chains']) - 1} peer chains, decides which NEAR Intents revenue can fairly "
-        f"count for NEAR, and states in advance the results that would prove it wrong.",
+        f"count for NEAR, and states explicit tripwires that would prove it wrong, with "
+        f"thresholds frozen in a tagged commit.",
         n.bottom_line(m, v),
         f"Multiples: {fmt_multiple(near['BASE+NET']['multiple'])} counting Intents revenue, "
         f"{fmt_multiple(near['BASE']['multiple'])} on base-layer fees, against a peer median "
         f"of {fmt_multiple(m['peer_median_multiple'])}.",
-        f"Falsification criteria, thresholds frozen in a tagged commit: {verdicts}",
+        f"Falsification verdicts: {verdicts}",
         f"A Python standard-library pipeline turns a committed DefiLlama and CoinGecko "
         f"snapshot (as of {fmt_day(m['as_of'])}) into metrics.json, THESIS.md and a static "
         f"dashboard; make judge-demo rebuilds everything offline and runs the tests, and "
